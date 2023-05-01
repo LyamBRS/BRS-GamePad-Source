@@ -54,4 +54,14 @@
     #pragma endregion
   #pragma endregion
 
+  #pragma region ErrorMessages
+
+    #define FATAL_BFIO_ERROR_CHUNK_HANDLING "Fatal error occured during chunk arrival handling"
+    #define INCORRECT_CHUNK_RECEIVED        "Some of the chunks received were incorrect."
+    #define INCORRECT_PACKET_RECEIVED       "Some received packets were incorrect"
+    #define UNSUPPORTED_FUNCTIONS           "Failed to parse incomming packets due to undefined behaviours."
+    #define STRAY_CHUNK_RECEIVED            "Some stray chunks were received."
+
+  #pragma endregion
+
 #endif

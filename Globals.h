@@ -37,6 +37,7 @@
 #include "Chunk.h"
 #include "Data.h"
 #include "Joystick.h"
+#include "Terminal.h"
 #include "_UNIT_TEST_Rgb.h"
 #include "_UNIT_TEST_Data.h"
 #include "_UNIT_TEST_Chunk.h"

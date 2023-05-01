@@ -69,6 +69,15 @@ class cDevice
          */
         Execution SetStatus(int newStatus);
         //////////////////////////////////////////////
+
+        /**
+         * @brief Set the Error Message of the device
+         * that other BFIO terminals can get access to.
+         * 
+         * @param NewErrorMessage 
+         * @return Execution 
+         */
+        Execution SetErrorMessage(string NewErrorMessage);
  };
 
 #endif
