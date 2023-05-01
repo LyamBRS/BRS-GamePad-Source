@@ -23,13 +23,16 @@
 
 #ifndef JOYSTICK_H
   #define JOYSTICK_H
-//================================================================================================//
+//=============================================//
 //	Include
-//================================================================================================//
+//=============================================//
 #include "Globals.h"
-//================================================================================================//
+//=============================================//
 //	Define
-//================================================================================================//
+//=============================================//
+#define _JOY_MAX_VAL 127
+#define _JOY_MIN_VAL -127
+#define _JOY_MID_VAL 0
 
 /**
  * @brief Function that executes mathematics to
@@ -46,7 +49,7 @@
  * modified.
  * @return Execution 
  */
-Execution CalculateJoystickAxisDeadzone(char* axisToModify, char Deadzone);
+Execution CalculateJoystickAxisDeadzone(signed char* axisToModify, signed char Deadzone);
 
 /**
  * @brief Executes math functions to apply a trim
@@ -64,7 +67,7 @@ Execution CalculateJoystickAxisDeadzone(char* axisToModify, char Deadzone);
  * Trim goes from -127 to 127.
  * @return Execution 
  */
-Execution CalculateJoystickAxisTrim(char* axisToModify, char Trim);
+Execution CalculateJoystickAxisTrim(signed char* axisToModify, signed char Trim);
 
 /**
  * @brief The cJoystick class allows
@@ -78,21 +81,21 @@ class cJoystick
         int _status = Status::Booting;
 
         /// @brief The currently stored x axis updated from Update();
-        char _xAxis = 0;
+        signed char _xAxis = 0;
         /// @brief The currently stored y axis updated from Update();
-        char _yAxis = 0;
+        signed char _yAxis = 0;
         /// @brief The currently stored switch updated from Update();
         bool _switch = 0;  
   
         /// @brief The currently stored trim to apply when getting x axis
-        char _xTrim = 0;
+        signed char _xTrim = 0;
         /// @brief The currently stored trim to apply when getting y axis
-        char _yTrim = 0;
+        signed char _yTrim = 0;
 
         /// @brief Deazone to apply to the X axis. If within that deadzone, 0 is returned.
-        char _xDeadzone = 0;
+        signed char _xDeadzone = 0;
         /// @brief Deazone to apply to the Y axis. If within that deadzone, 0 is returned.
-        char _yDeadzone = 0;
+        signed char _yDeadzone = 0;
 
         /// @brief 0: Normal functions 1: Bypassed (always return 0)
         unsigned char _mode = 0;
@@ -141,7 +144,7 @@ class cJoystick
          * applied on both signs (positive / negative)
          * @return Execution 
          */
-        Execution SetDeadZone_X(char newDeadZone);
+        Execution SetDeadZone_X(signed char newDeadZone);
         /**
          * @brief Sets the joystick's Y axis deadzone.
          * Values are compensated when Get functions
@@ -151,7 +154,7 @@ class cJoystick
          * applied on both signs (positive / negative)
          * @return Execution 
          */
-        Execution SetDeadZone_Y(char newDeadZone);
+        Execution SetDeadZone_Y(signed char newDeadZone);
         /**
          * @brief Gets the current deadzone set for
          * the X axis. Default value is 0. Value
@@ -161,7 +164,7 @@ class cJoystick
          * Deadzone (0-127)
          * @return Execution 
          */
-        Execution GetDeadZone_X(char* currentDeadZone);
+        Execution GetDeadZone_X(signed char* currentDeadZone);
         /**
          * @brief Gets the current deadzone set for
          * the Y axis. Default value is 0. Value
@@ -170,7 +173,7 @@ class cJoystick
          * Deadzone (0-127)
          * @return Execution 
          */
-        Execution GetDeadZone_Y(char* currentDeadZone);
+        Execution GetDeadZone_Y(signed char* currentDeadZone);
 
         /**
          * @brief Set a new trim for the X axis. Trim
@@ -180,7 +183,7 @@ class cJoystick
          * value from -127 to 127. Defaults to 0.
          * @return Execution 
          */
-        Execution SetTrim_X(char newTrim);
+        Execution SetTrim_X(signed char newTrim);
         /**
          * @brief Set a new trim for the Y axis. Trim
          * is applied when Get functions are called.
@@ -189,7 +192,7 @@ class cJoystick
          * value from -127 to 127. Defaults to 0.
          * @return Execution 
          */
-        Execution SetTrim_Y(char newTrim);
+        Execution SetTrim_Y(signed char newTrim);
         /**
          * @brief Gets the current trim set for
          * the X axis. Default value is 0.
@@ -199,7 +202,7 @@ class cJoystick
          * to 0.
          * @return Execution 
          */
-        Execution GetTrim_X(char* currentTrim);
+        Execution GetTrim_X(signed char* currentTrim);
         /**
          * @brief Gets the current trim set for
          * the Y axis. Default value is 0.
@@ -209,7 +212,7 @@ class cJoystick
          * to 0.
          * @return Execution 
          */
-        Execution GetTrim_Y(char* currentTrim);
+        Execution GetTrim_Y(signed char* currentTrim);
 
         /**
          * @brief Get the current X axis. The value is
@@ -220,7 +223,7 @@ class cJoystick
          * trim is applied.
          * @return Execution 
          */
-        Execution GetCurrentAxis_X(char* currentAxis);
+        Execution GetCurrentAxis_X(signed char* currentAxis);
         /**
          * @brief Get the current Y axis. The value is
          * updated when Update() is called.
@@ -230,7 +233,7 @@ class cJoystick
          * trim is applied.
          * @return Execution 
          */
-        Execution GetCurrentAxis_Y(char* currentAxis);
+        Execution GetCurrentAxis_Y(signed char* currentAxis);
         /**
          * @brief Get the current state of the joystick's
          * switch. The value is only updated when
@@ -254,7 +257,7 @@ class cJoystick
          * @param currentSwitchState 
          * @return Execution 
          */
-        Execution GetEverything(char* currentAxisX, char* currentAxisY, bool* currentSwitchState);
+        Execution GetEverything(signed char* currentAxisX, signed char* currentAxisY, bool* currentSwitchState);
         //////////////////////////////////////////////
 
         /**

@@ -12,8 +12,18 @@
  * @copyright Copyright (c) 2023
  * 
  */
+
+/*  ############    ############     ##########
+    ############    ############     ##########
+              ##              ##   ## 
+    ####    ##      ####    ##     ############
+    ####    ##      ####    ##     ############
+              ##              ##             ##
+    ############    ####      ##   ##########
+    ############    ####      ##   ##########   */
 /////////////////////////////////////////////////////////////////////////////
 #include "Joystick.h"
+////////////////////// - Local Defines
 
 /**
  * @brief Function that executes mathematics to
@@ -30,23 +40,23 @@
  * modified.
  * @return Execution 
  */
-Execution CalculateJoystickAxisDeadzone(char* axisToModify, char Deadzone)
+Execution CalculateJoystickAxisDeadzone(signed char* axisToModify, signed char Deadzone)
 {
     if(Deadzone > 0)
     {
         char oldAxis = *axisToModify;
-        double maxAxisWithDeadzone = 127 - (double) Deadzone;
+        double maxAxisWithDeadzone = _JOY_MAX_VAL - (double) Deadzone;
         double currentAxis = (double)(*axisToModify);
 
         if(oldAxis <= Deadzone && oldAxis >= -Deadzone)
         {
-            *axisToModify = 0;
+            *axisToModify = _JOY_MID_VAL;
             return Execution::Passed;
         }
         else
         {
             // Converts deadzone offset applied so the axis is still from -127 to 127
-            currentAxis = ((currentAxis * 127) / maxAxisWithDeadzone);
+            currentAxis = ((currentAxis * _JOY_MAX_VAL) / maxAxisWithDeadzone);
             if(oldAxis < 0)
             {
                 currentAxis = currentAxis + (double) Deadzone;
@@ -85,11 +95,11 @@ Execution CalculateJoystickAxisDeadzone(char* axisToModify, char Deadzone)
  * Trim goes from -127 to 127.
  * @return Execution 
  */
-Execution CalculateJoystickAxisTrim(char* axisToModify, char Trim)
+Execution CalculateJoystickAxisTrim(signed char* axisToModify, signed char Trim)
 {
     if(Trim != 0)
     {
-        if(*axisToModify == 0)
+        if(*axisToModify == _JOY_MID_VAL)
         {
             *axisToModify = Trim;
             return Execution::Passed;
@@ -100,12 +110,12 @@ Execution CalculateJoystickAxisTrim(char* axisToModify, char Trim)
         double trim = (double)Trim;
         
         if(Trim > 0){
-            maxValue = 127-trim;
+            maxValue = _JOY_MAX_VAL - trim;
         }
         else{
-            maxValue = 127+trim;
+            maxValue = _JOY_MAX_VAL + trim;
         }
-        resultAxis = ((resultAxis * maxValue)/127) + trim;
+        resultAxis = ((resultAxis * maxValue)/_JOY_MAX_VAL) + trim;
         *axisToModify = (char)resultAxis;
         return Execution::Passed;
     }
@@ -206,7 +216,7 @@ Execution cJoystick::GetMode(unsigned char* currentMode)
  * applied on both signs (positive / negative)
  * @return Execution 
  */
-Execution cJoystick::SetDeadZone_X(char newDeadZone)
+Execution cJoystick::SetDeadZone_X(signed char newDeadZone)
 {
     if(newDeadZone != _xDeadzone)
     {
@@ -230,7 +240,7 @@ Execution cJoystick::SetDeadZone_X(char newDeadZone)
  * applied on both signs (positive / negative)
  * @return Execution 
  */
-Execution cJoystick::SetDeadZone_Y(char newDeadZone)
+Execution cJoystick::SetDeadZone_Y(signed char newDeadZone)
 {
     if(newDeadZone != _yDeadzone)
     {
@@ -254,7 +264,7 @@ Execution cJoystick::SetDeadZone_Y(char newDeadZone)
  * Deadzone (0-127)
  * @return Execution 
  */
-Execution cJoystick::GetDeadZone_X(char* currentDeadZone)
+Execution cJoystick::GetDeadZone_X(signed char* currentDeadZone)
 {
     *currentDeadZone = _xDeadzone;
     return Execution::Passed;
@@ -267,7 +277,7 @@ Execution cJoystick::GetDeadZone_X(char* currentDeadZone)
  * Deadzone (0-127)
  * @return Execution 
  */
-Execution cJoystick::GetDeadZone_Y(char* currentDeadZone)
+Execution cJoystick::GetDeadZone_Y(signed char* currentDeadZone)
 {
     *currentDeadZone = _yDeadzone;
     return Execution::Passed;
@@ -281,7 +291,7 @@ Execution cJoystick::GetDeadZone_Y(char* currentDeadZone)
  * value from -127 to 127. Defaults to 0.
  * @return Execution 
  */
-Execution cJoystick::SetTrim_X(char newTrim)
+Execution cJoystick::SetTrim_X(signed char newTrim)
 {
     if(newTrim != _xTrim)
     {
@@ -301,7 +311,7 @@ Execution cJoystick::SetTrim_X(char newTrim)
  * value from -127 to 127. Defaults to 0.
  * @return Execution 
  */
-Execution cJoystick::SetTrim_Y(char newTrim)
+Execution cJoystick::SetTrim_Y(signed char newTrim)
 {
     if(newTrim != _yTrim)
     {
@@ -322,7 +332,7 @@ Execution cJoystick::SetTrim_Y(char newTrim)
  * to 0.
  * @return Execution 
  */
-Execution cJoystick::GetTrim_X(char* currentTrim)
+Execution cJoystick::GetTrim_X(signed char* currentTrim)
 {
     *currentTrim = _xTrim;
     return Execution::Passed;
@@ -336,7 +346,7 @@ Execution cJoystick::GetTrim_X(char* currentTrim)
  * to 0.
  * @return Execution 
  */
-Execution cJoystick::GetTrim_Y(char* currentTrim)
+Execution cJoystick::GetTrim_Y(signed char* currentTrim)
 {
     *currentTrim = _yTrim;
     return Execution::Passed;
@@ -351,7 +361,7 @@ Execution cJoystick::GetTrim_Y(char* currentTrim)
  * trim is applied.
  * @return Execution 
  */
-Execution cJoystick::GetCurrentAxis_X(char* currentAxis)
+Execution cJoystick::GetCurrentAxis_X(signed char* currentAxis)
 {
     if(_mode == 0)
     {
@@ -373,7 +383,7 @@ Execution cJoystick::GetCurrentAxis_X(char* currentAxis)
  * trim is applied.
  * @return Execution 
  */
-Execution cJoystick::GetCurrentAxis_Y(char* currentAxis)
+Execution cJoystick::GetCurrentAxis_Y(signed char* currentAxis)
 {
     if(_mode == 0)
     {
@@ -421,7 +431,7 @@ Execution cJoystick::GetCurrentSwitch(bool* currentSwitchState)
  * @param currentSwitchState 
  * @return Execution 
  */
-Execution cJoystick::GetEverything(char* currentAxisX, char* currentAxisY, bool* currentSwitchState)
+Execution cJoystick::GetEverything(signed char* currentAxisX, signed char* currentAxisY, bool* currentSwitchState)
 {
     if(GetCurrentAxis_X(currentAxisX) != Execution::Passed){
         return Execution::Failed;
@@ -451,25 +461,26 @@ Execution cJoystick::Update()
     {
         if(_mode == 0)
         {
-            _xAxis = analogRead(_analogXPin);
-            _yAxis = analogRead(_analogYPin);
+            unsigned char xAxis = analogRead(_analogXPin);
+            unsigned char yAxis = analogRead(_analogYPin);
             _switch = digitalRead(_switchPin);
 
-            double x = (double)_xAxis;
-            double y = (double)_yAxis;
-            double switchV = (double)_switch;
+            // Converting unsigned value to signed value to keep 0 as not moving
+            _xAxis = (signed char)(xAxis - _JOY_MAX_VAL);
+            _yAxis = (signed char)(yAxis - _JOY_MAX_VAL);
 
-            Serial.println(std::to_string(_xAxis).c_str());
-            Serial.println(std::to_string(_yAxis).c_str());
-            Serial.println(std::to_string(switchV).c_str());
-            Serial.println("");
+            CalculateJoystickAxisDeadzone(&_xAxis, _xDeadzone);
+            CalculateJoystickAxisDeadzone(&_yAxis, _yDeadzone);
+
+            CalculateJoystickAxisTrim(&_xAxis, _xTrim);
+            CalculateJoystickAxisTrim(&_yAxis, _yTrim);
             return Execution::Passed;
         }
         else
         {
-            _xAxis = 0;
-            _yAxis = 0;
-            _switch = 0;
+            _xAxis = _JOY_MID_VAL;
+            _yAxis = _JOY_MID_VAL;
+            _switch = _JOY_MID_VAL;
             return Execution::Passed;
         }
     }

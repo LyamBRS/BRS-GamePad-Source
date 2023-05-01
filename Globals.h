@@ -40,9 +40,24 @@
 #include "_UNIT_TEST_Rgb.h"
 #include "_UNIT_TEST_Data.h"
 #include "_UNIT_TEST_Chunk.h"
+#include "_UNIT_TEST_Joystick.h"
 #include "_UNIT_TEST.h"
 
+///@brief RGB LED uses GPIO 48
 #define RGB_PIN 48
+///@brief The button of the left joystick is GPIO45
+#define LEFT_JOYSTICK_SWITCH_PIN 26
+///@brief The button of the right joystick is GPIO16
+#define RIGHT_JOYSTICK_SWITCH_PIN 9
+///@brief The X axis ADC of the left joystick is GPIO 
+#define LEFT_JOYSTICK_X_PIN 38
+///@brief The X axis ADC of the right joystick is GPIO 
+#define RIGHT_JOYSTICK_X_PIN 15
+///@brief The Y axis ADC of the left joystick is GPIO 
+#define LEFT_JOYSTICK_Y_PIN 39
+///@brief The Y axis ADC of the right joystick is GPIO 
+#define RIGHT_JOYSTICK_Y_PIN 4
+
 #define RGB_COUNT 1
 #define DEBUG_BAUD_RATE 9600
 #define CLOCK_PERIOD_MS 1
@@ -62,7 +77,23 @@ Adafruit_NeoPixel WS2812(RGB_COUNT, RGB_PIN, NEO_GRB + NEO_KHZ800);
  */
 RGB Rgb;
 
+/**
+ * @brief Class allowing easy readings
+ * and interfacing of Gamepad's
+ * left joystick.
+ * This is a timebase class and must have
+ * its update called periodically.
+ */
 cJoystick LeftJoystick;
+
+/**
+ * @brief Class allowing easy readings
+ * and interfacing of Gamepad's
+ * right joystick.
+ * This is a timebase class and must have
+ * its update called periodically.
+ */
+cJoystick RightJoystick;
 
 /**
  * @brief The class that represents the device
@@ -108,7 +139,8 @@ Execution InitializeProject()
     Device = cDevice();
     Chunk = cChunk();
     Data = cData();
-    LeftJoystick = cJoystick(8, 5, 15);
+    LeftJoystick = cJoystick(LEFT_JOYSTICK_X_PIN, LEFT_JOYSTICK_Y_PIN, LEFT_JOYSTICK_SWITCH_PIN);
+    RightJoystick = cJoystick(RIGHT_JOYSTICK_X_PIN, RIGHT_JOYSTICK_Y_PIN, RIGHT_JOYSTICK_SWITCH_PIN);
 
     return Execution::Passed;
 }
@@ -152,6 +184,12 @@ Execution TestInitialization()
     if(!LeftJoystick.built)
     {
       Serial.println("Project test: -> LEFTJOYSTICK OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!RightJoystick.built)
+    {
+      Serial.println("Project test: -> RIGHTJOYSTICK OBJECT FAIL");
       return Execution::Failed;
     }
 

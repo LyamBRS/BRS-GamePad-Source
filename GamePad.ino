@@ -60,19 +60,19 @@ int previousStatus = Status::Available;
 void loop() {
 
   Rgb.Update();
-  LeftJoystick.Update();
-
-            unsigned char red = analogRead(8);
-            unsigned char blue = analogRead(5);
-            unsigned char green = (digitalRead(15)*255);
-
-            Rgb.SetMode(0);
-            Rgb.SetColors((double)(red), (double)green, (double)(blue));
-
-            Serial.println(std::to_string(red).c_str());
-            Serial.println(std::to_string(blue).c_str());
-            Serial.println(std::to_string(green).c_str());
-            Serial.println("");
+  // LeftJoystick.Update();
+// 
+            // unsigned char red = analogRead(8);
+            // unsigned char blue = analogRead(5);
+            // unsigned char green = (digitalRead(15)*255);
+// 
+            // Rgb.SetMode(0);
+            // Rgb.SetColors((double)(red), (double)green, (double)(blue));
+// 
+            // Serial.println(std::to_string(red).c_str());
+            // Serial.println(std::to_string(blue).c_str());
+            // Serial.println(std::to_string(green).c_str());
+            // Serial.println("");
   // milliseconds++;
 
   // if(milliseconds >= 10000)
