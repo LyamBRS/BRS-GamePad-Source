@@ -34,10 +34,13 @@
 #include "Enums.h"
 #include "RGB.h"
 #include "Device.h"
+#include "BFIO.h"
 #include "Chunk.h"
 #include "Data.h"
+#include "Packet.h"
 #include "Joystick.h"
 #include "Terminal.h"
+#include "Gates.h"
 #include "_UNIT_TEST_Rgb.h"
 #include "_UNIT_TEST_Data.h"
 #include "_UNIT_TEST_Chunk.h"
@@ -123,6 +126,31 @@ cChunk Chunk;
  * through the BFIO protocol.
  */
 cData Data;
+
+/**
+ * @brief Global object which can be accessed
+ * by all programs which includes Globals.h.
+ * This object is used to handle packet
+ * creation and convertions. In other words,
+ * it creates and gets informations from planes.
+ * 
+ */
+cPacket Packet;
+
+/**
+ * @brief The master terminal of the device.
+ * Handles taxiways and runways required to
+ * ask the other device functions and read
+ * its answers.
+ */
+cTerminal MasterTerminal;
+
+/**
+ * @brief The slave terminal of the device.
+ * Handles taxiways and provides answers
+ * to the other device's function requests.
+ */
+cTerminal SlaveTerminal;
 
 #pragma region Functions
 /**

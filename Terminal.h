@@ -45,8 +45,13 @@ class cTerminal
          */
         unsigned char _currentCheckSum = 0;
 
-        unsigned char _ArrivalBuffer[100];
-        unsigned short _DepartureBuffer[100];
+        unsigned short _ArrivalBuffer[100];
+
+        /**
+         * @brief list of the function's ID
+         * that needs to be sent in order of newest to most urgent.
+         */
+        unsigned char _DepartureIDBuffer[20];
 
         /**
          * @brief The current mode.
@@ -64,6 +69,15 @@ class cTerminal
 
         /// @brief Is set to true if the function is currently receiving a packet
         bool receivingPacket = false;
+
+        /// @brief The status of the terminals departure.
+        TerminalStatus departureStatus = TerminalStatus::Initialised;
+
+        /// @brief The status of the terminals arrivals.
+        TerminalStatus arrivalStatus = TerminalStatus::Initialised;
+
+        /// @brief Holds the ID of the packet that is currently being received. Defaults to 0.
+        unsigned char receivingID = 0;
         //////////////////////////////////////////////
         cTerminal();
         //////////////////////////////////////////////
@@ -115,13 +129,11 @@ class cTerminal
          * 
          * @attention this function will verify your packet.
          * 
-         * @param packetBuffer 
-         * array of chunk which corresponds to the packet to queue
-         * @param packetBufferSize 
-         * Amount of chunks in the array including the start and check chunk.
+         * @param planeID 
+         * Function ID that needs to be queued in the requests buffer.
          * @return Execution 
          */
-        Execution QueueNewPacket(unsigned short* packetBuffer, int packetBufferSize);
+        Execution PutPlaneOnTaxiway(unsigned char planeID);
 
         /**
          * @brief Puts the BFIO function ID of the
@@ -141,6 +153,25 @@ class cTerminal
          * @return Execution 
          */
         Execution Reset();
+
+        /**
+         * @brief Get the preliminary information of the
+         * arriving packet that is currently being handled.
+         * 
+         * @attention This function will return information
+         * on a packet that is currently being dealt with.
+         * The packet is not fully received when this function
+         * can be called.
+         * 
+         * @param currentPacketID
+         * Pointer to a variable where the current packet ID will be placed.
+         * @param currentChunkCount 
+         * Pointer to where the current chunk count will be stored
+         * @param currentCheckSum 
+         * Pointer to where the current check sum will be stored.
+         * @return Execution 
+         */
+        Execution GetCurrentArrivalInfo(unsigned char* currentPacketID, int* currentChunkCount, unsigned char* currentCheckSum);
 
         /**
          * @brief 
@@ -164,6 +195,27 @@ class cTerminal
          * @return Execution 
          */
         Execution GetMode(unsigned char* currentMode);
+
+        /**
+         * @brief Checks if the plane can fit on the taxiway
+         * (checks if the buffer has enough space for the request or answer)
+         * @param planeSize 
+         * @return Execution 
+         */
+        Execution CanPlaneTaxi(int planeSize);
+
+        /**
+         * @brief Method that returns Execution::Passed if the
+         * specified plane is already queueing for departure.
+         * Otherwise, Execution::Failed is returned.
+         * 
+         * @param planeID 
+         * ID of the plane to check for on the taxiway.
+         * @return Execution 
+         */
+        Execution IsPlaneOnDepartureTaxiway(unsigned char planeID);
+
+
  };
 
 #endif

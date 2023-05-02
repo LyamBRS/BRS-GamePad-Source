@@ -24,7 +24,15 @@
 /////////////////////////////////////////////////////////////////////////////
 #include "Terminal.h"
 /////////////////////////////////////////////////////////////////////////////
-cTrafficHandler::cTrafficHandler();
+
+/**
+ * @brief Construct a new c Traffic Handler::c Traffic Handler object
+ * Default constructor. Does not set the class to "Built".
+ */
+cTrafficHandler::cTrafficHandler()
+{
+    built = false;
+}
 //////////////////////////////////////////////
 
 /**
@@ -43,7 +51,9 @@ Execution cTerminal::_HandleChunkArrival(unsigned short newChunkArrival)
     Execution execution
     unsigned char receivedByte;
 
-    // Get the type of the chunk that just arrived
+    #pragma region -Chunk analysis-
+
+    // Get the chunk type.
     execution = Chunk.ToType(newChunkArrival, &chunkType);
     if(execution != Execution::Passed)
     {
@@ -52,6 +62,7 @@ Execution cTerminal::_HandleChunkArrival(unsigned short newChunkArrival)
         return execution;
     }
 
+    // Get the chunk's byte data.
     execution = Chunk.ToByte(newChunkArrival, &receivedByte);
     if(execution != Execution::Passed)
     {
@@ -59,10 +70,12 @@ Execution cTerminal::_HandleChunkArrival(unsigned short newChunkArrival)
         Device.SetStatus(Status::CommunicationError);
         return execution;    
     }
-
-    // Already receiving packets
+    #pragma endregion
+    
+    // Executed if we are already receiving packets.
     if(receivingPacket)
     {
+        // If a start chunk is sent before end chunks, there is an issue.
         if(chunkType ==  ChunkType::Start)
         {
             // The packet that we were receiving suddently got cut off by another.
@@ -85,7 +98,9 @@ Execution cTerminal::_HandleChunkArrival(unsigned short newChunkArrival)
     {
         if(chunkType == ChunkType::Start)
         {
-            // - START OF CAPTURING - //
+            #pragma region -Start of Arrival handling-
+            _currentCheckSum = 0;
+            #pragma endregion
         }
         else
         {

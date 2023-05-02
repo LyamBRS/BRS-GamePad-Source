@@ -145,4 +145,45 @@ enum HighwayStatus
     Stopped,
     Error
 };
+
+/**
+ * @brief Enumeration listing
+ * the possible terminal status
+ * that a terminal can return or
+ * be set to as well as their
+ * meaning summarized.
+ */
+enum TerminalStatus
+{
+    /// @brief The terminal class has just been initialised
+    Initialised,
+    /// @brief The terminal does not have enough buffer space for your request
+    NotEnoughSpace,
+    /// @brief The terminal is overflowing with planes
+    Overflowing,
+    /// @brief The terminal is ready to send packets away
+    DepartureAvailable,
+    /// @brief The terminal is ready to receive packets
+    ArrivalReady
+};
+
+/**
+ * @brief Enumeration of the possible
+ * status that a BFIO function can be at.
+ * These are mostly used for departing functions.
+ */
+enum GateStatus
+{
+    /// @brief The class has just been initialised
+    Initialised,
+    /// @brief The function is available and can be sent through a terminal.
+    ReadyForDeparture,
+    /// @brief The function is waiting for an arrival after it departed on the highway
+    AwaitingArrival,
+    /// @brief The generated packet departed but is stuck taxing to the highway. It just left the gate.
+    JustLeft,
+    /// @brief An arrival is available for unloading.
+    AvailableArrival
+
+};
 #endif

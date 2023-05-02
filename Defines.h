@@ -62,6 +62,17 @@
     #define UNSUPPORTED_FUNCTIONS           "Failed to parse incomming packets due to undefined behaviours."
     #define STRAY_CHUNK_RECEIVED            "Some stray chunks were received."
 
+    #define DIV_COUNTING                    "Error when counting Div Chunks"
+    #define FREE_BYTES_IN_PACKET            "Detected free bytes in packet"
+
+    #define INTERNAL_BUFFER_SIZE_ERROR      "INTERNAL BUFFER SIZE ERROR"
+    #define INTERNAL_CHUNK_CONVERTION_FAIL  "INTERNAL CHUNK CONVERTION FAIL"
+    #define INTERNAL_BYTE_CONVERTION_FAIL   "INTERNAL BYTE CONVERTION FAIL"
+    #define INTERNAL_PACKET_BUILDING_FAIL   "INTERNAL PACKET BUILDING FAIL"
+
+  #pragma endregion
+
+  #pragma region ErrorCodes
   #pragma endregion
 
 #endif
