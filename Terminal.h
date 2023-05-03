@@ -92,7 +92,7 @@ class cTerminal
          * Chunk that just arrived and needs to be queued.
          * @return Execution::Passed chunk queued in buffer
          */
-        Execution _HandleChunkArrival(unsigned short newChunkArrival);
+        Execution _HandlePlaneArrival(unsigned short newChunkArrival);
 
         /**
          * @brief Method that gets incoming chunks
@@ -105,7 +105,7 @@ class cTerminal
          * @return Execution::Passed : A new chunk was set
          * Execution::Unecessary : No chunks to send.
          */
-        Execution _HandleChunkDeparture(unsigned short* departingChunk);
+        Execution _HandlePlaneDeparture(unsigned short* departingChunk);
 
         /**
          * @brief Stores the last packet stored in
@@ -122,7 +122,7 @@ class cTerminal
          * Size of the chunk array
          * @return Execution 
          */
-        Execution GetLastPacket(unsigned short* packetBuffer, int packetBufferSize);
+        Execution GetLastArrival(unsigned short* packetBuffer, int packetBufferSize);
 
         /**
          * @brief This method queues a packet to be sent eventually.
@@ -144,7 +144,7 @@ class cTerminal
          * Id of the packet (0-255)
          * @return Execution 
          */
-        Execution GetLastPacketID(unsigned char* idOfLastPacket);
+        Execution GetLastPlaneID(unsigned char* idOfLastPacket);
 
         /**
          * @brief Resets this class to default value.

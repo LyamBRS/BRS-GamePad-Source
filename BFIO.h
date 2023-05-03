@@ -24,7 +24,7 @@
 #define BFIO_TIMEOUT_MS 1000
 #define _AMOUNT_OF_SUPPORTED_ID 20
 
-supportedBFIOIDs[_AMOUNT_OF_SUPPORTED_ID] = {
+unsigned char supportedBFIOIDs[_AMOUNT_OF_SUPPORTED_ID] = {
     0, // [MANDATORY]  - Ping(None)
     1, // [MANDATORY]  - Status (Get)
     2, // [MANDATORY]  - Handshake
@@ -65,7 +65,7 @@ class cBFIO
            
     public:
         //////////////////////////////////// - CONSTRUCTOR -
-        BFIO();
+        cBFIO();
         //////////////////////////////////// - Mandatory Functions -
 
         /**

@@ -29,9 +29,9 @@
  * @brief Construct a new c Traffic Handler::c Traffic Handler object
  * Default constructor. Does not set the class to "Built".
  */
-cTrafficHandler::cTrafficHandler()
+cTerminal::cTerminal()
 {
-    built = false;
+    built = true;
 }
 //////////////////////////////////////////////
 
@@ -45,10 +45,10 @@ cTrafficHandler::cTrafficHandler()
  * Chunk that just arrived and needs to be queued.
  * @return Execution::Passed chunk queued in buffer
  */
-Execution cTerminal::_HandleChunkArrival(unsigned short newChunkArrival)
+Execution cTerminal::_HandlePlaneArrival(unsigned short newChunkArrival)
 {
-    ChunkType chunkType;
-    Execution execution
+    Execution execution;
+    int chunkType;
     unsigned char receivedByte;
 
     #pragma region -Chunk analysis-
@@ -121,9 +121,9 @@ Execution cTerminal::_HandleChunkArrival(unsigned short newChunkArrival)
  * @return Execution::Passed : A new chunk was set
  * Execution::Unecessary : No chunks to send.
  */
-Execution cTerminal::_HandleChunkDeparture(unsigned short* departingChunk)
+Execution cTerminal::_HandlePlaneDeparture(unsigned short* departingChunk)
 {
-
+    return Execution::Failed;
 }
 
 /**
@@ -141,15 +141,15 @@ Execution cTerminal::_HandleChunkDeparture(unsigned short* departingChunk)
  * Size of the chunk array
  * @return Execution 
  */
-Execution cTerminal::GetLastPacket(unsigned short* packetBuffer, int packetBufferSize)
+Execution cTerminal::GetLastArrival(unsigned short* packetBuffer, int packetBufferSize)
 {
-
+    return Execution::Failed;
 }
 
 /**
- * @brief This method queues a packet to be sent eventually.
+ * @brief This method queues a plane to be sent eventually.
  * 
- * @attention this function will verify your packet.
+ * @attention this function will verify your plane.
  * 
  * @param packetBuffer 
  * array of chunk which corresponds to the packet to queue
@@ -157,9 +157,9 @@ Execution cTerminal::GetLastPacket(unsigned short* packetBuffer, int packetBuffe
  * Amount of chunks in the array including the start and check chunk.
  * @return Execution 
  */
-Execution cTerminal::QueueNewPacket(unsigned short* packetBuffer, int packetBufferSize)
+Execution cTerminal::PutPlaneOnTaxiway(unsigned char planeID)
 {
-
+    return Execution::Failed;
 }
 
 /**
@@ -171,9 +171,9 @@ Execution cTerminal::QueueNewPacket(unsigned short* packetBuffer, int packetBuff
  * Id of the packet (0-255)
  * @return Execution 
  */
-Execution cTerminal::GetLastPacketID(unsigned char* idOfLastPacket)
+Execution cTerminal::GetLastPlaneID(unsigned char* idOfLastPacket)
 {
-
+    return Execution::Failed;
 }
 
 /**
@@ -184,7 +184,7 @@ Execution cTerminal::GetLastPacketID(unsigned char* idOfLastPacket)
  */
 Execution cTerminal::Reset()
 {
-
+    return Execution::Failed;
 }
 
 /**

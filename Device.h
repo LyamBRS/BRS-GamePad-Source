@@ -77,7 +77,7 @@ class cDevice
          * @param NewErrorMessage 
          * @return Execution 
          */
-        Execution SetErrorMessage(string NewErrorMessage);
+        Execution SetErrorMessage(std::string NewErrorMessage);
  };
 
 #endif

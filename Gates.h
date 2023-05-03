@@ -77,7 +77,7 @@ class cGateFoundation
          * @brief The current status of the gate.
          * Is set automatically by this class.
          */
-        GateStatus status = GateStatus::Initialised;
+        GateStatus status = GateStatus::Cleaned;
 
         /**
          * @brief The amount of parameters it is
@@ -123,7 +123,7 @@ class cGateFoundation
          * @param arrivedPacket 
          * @return Execution 
          */
-        Execution _VerifyArrival(unsigned short* arrivedPacket);
+        Execution _VerifyArrival(unsigned char planeID, unsigned short* arrivedPlane, int planeSize);
 
         /**
          * @brief Function that Queues an error answer
@@ -159,6 +159,7 @@ class cDeparture_Ping: public cGateFoundation
 {
   private:
       bool _ping = false;
+      bool _receivedPing = false;
   public:
       /// @brief Constructor
       cDeparture_Ping();
@@ -190,7 +191,7 @@ class cDeparture_Ping: public cGateFoundation
        * Size of the plane (how big is the array of chunks)
        * @return Execution 
        */
-      Execution _DockPlane(unsigned short* planeToDock, int planeSize);
+      Execution _DockPlane(unsigned char planeID, unsigned short* planeToDock, int planeSize);
 
       /**
        * @brief The method called to send a ping
@@ -207,7 +208,7 @@ class cDeparture_Ping: public cGateFoundation
        * @return Execution::Passed = Reading worked.
        */
       Execution Read(bool* resultedValue);
-}
+};
 
 /**
  * @brief Class used to get the status of the other device.
@@ -255,7 +256,7 @@ class cDeparture_StatusUpdate: public cGateFoundation
        * @return Execution::Passed = Reading worked.
        */
       Execution Read(unsigned char* resultedStatus);
-}
+};
 
 /**
  * @brief Class used to update the error message
@@ -266,7 +267,7 @@ class cDeparture_StatusUpdate: public cGateFoundation
 class cDeparture_ErrorMessageUpdate: public cGateFoundation
 {
   private:
-      std::string _receivedMessage = false;
+      std::string _receivedMessage = "";
   public:
       /// @brief Constructor
       cDeparture_ErrorMessageUpdate();
@@ -304,7 +305,7 @@ class cDeparture_ErrorMessageUpdate: public cGateFoundation
        * @return Execution::Passed = Reading worked.
        */
       Execution Read(std::string& resultedStatus);
-}
+};
 
 /**
  * @brief Class used to update the type
@@ -353,7 +354,7 @@ class cDeparture_TypeUpdate: public cGateFoundation
        * @return Execution::Passed = Reading worked.
        */
       Execution Read(unsigned char* resultedType);
-}
+};
 
 /**
  * @brief Class used to update the ID
@@ -402,7 +403,7 @@ class cDeparture_IDUpdate: public cGateFoundation
        * @return Execution::Passed = Reading worked.
        */
       Execution Read(unsigned long long* resultedID);
-}
+};
 
 /**
  * @brief Class used to request a reset of 
@@ -450,7 +451,7 @@ class cDeparture_RestartProtocol: public cGateFoundation
        * @return Execution::Passed = Reading worked.
        */
       Execution Read(bool* acknowledgment);
-}
+};
 
 /**
  * @brief Class used to request an update of 
@@ -504,7 +505,7 @@ class cDeparture_UniversalInfosUpdate: public cGateFoundation
        * @return Execution::Passed = Reading worked.
        */
       Execution Read(unsigned long long* receivedID, unsigned long long* receivedBFIOVersion, unsigned char* receivedType, unsigned char* receivedStatus, std::string& receivedGitRepository, std::string& receivedDeviceName, std::string& receivedDeviceVersion);
-}
+};
 #pragma endregion
 #pragma endregion
 //=============================================//

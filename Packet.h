@@ -101,7 +101,7 @@ class cPacket
          * @param resultedSegmentSize 
          * @return Execution 
          */
-        Execution GetParameterSegmentFromBytes(unsigned char* bytesToConvert, unsigned short* resultedSegment, int* byteCount, int* resultedSegmentSize);
+        Execution GetParameterSegmentFromBytes(unsigned char* bytesToConvert, unsigned short* resultedSegment, int byteCount, int resultedSegmentSize);
 
         /**
          * @brief Combine 2 segments togheter into 1 array of chunks.
@@ -133,7 +133,7 @@ class cPacket
          * Available size needed to store the resulted packet.
          * @return Execution 
          */
-        Execution CreateFromSegments(unsigned char functionID, unsigned short* paramSegments, int sizeOfParamSegments, unsigned short* resultedPacket, int* sizeOfResultedPacket);
+        Execution CreateFromSegments(unsigned char functionID, unsigned short* paramSegments, int sizeOfParamSegments, unsigned short* resultedPacket, int sizeOfResultedPacket);
 
         /**
          * @brief Get a segment from a packet with only 1 segment.

@@ -24,7 +24,10 @@
 #pragma endregion
 
 #pragma region Class
-cPacket::cPacket();
+cPacket::cPacket()
+{
+  built = true;
+}
 ////////////////////////////////////////////////////////////
 
 /**
@@ -35,22 +38,24 @@ cPacket::cPacket();
 Execution cPacket::GetID(unsigned short* packet, int packetSize, unsigned char* packetID)
 {
     Execution execution;
-    unsigned char returned = 255;
+    int returnedType = 255;
+    unsigned char returnedByte = 255;
+    unsigned short firstChunk = packet[0];
 
-    execution = Chunk.ToType(packet[0], &returned);
+    execution = Chunk.ToType(firstChunk, &returnedType);
     if(execution != Execution::Passed)
     {
         // INCORRECT CHUNK TYPE GOTTEN
         return Execution::Incompatibility;
     }
 
-    if(returned != ChunkType::Start)
+    if(returnedType != ChunkType::Start)
     {
         // First chunk of the packet is not a start chunk
         return Execution::Failed;
     }
 
-    execution = Chunk.ToByte(packet[0], &returned);
+    execution = Chunk.ToByte(packet[0], &returnedByte);
     if(execution != Execution::Passed)
     {
         // Function failed to execute
@@ -58,7 +63,7 @@ Execution cPacket::GetID(unsigned short* packet, int packetSize, unsigned char* 
     }
 
     // Success! ID was extracted
-    *packetID = returned;
+    *packetID = returnedByte;
     return Execution::Passed;
 }
 
@@ -74,33 +79,34 @@ Execution cPacket::GetID(unsigned short* packet, int packetSize, unsigned char* 
 Execution cPacket::VerifyCheckSum(unsigned short* packet, int packetSize, unsigned char checkSumToVerify)
 {
     Execution execution;
-    unsigned char result = 255;
+    int resultedType = 255;
+    unsigned char resultedByte = 255;
 
-    execution = Chunk.ToType(packet[packetSize-1], &result);
+    execution = Chunk.ToType(packet[packetSize-1], &resultedType);
     if(execution != Execution::Passed)
     {
         // Failed to get the type of that chunk
         return Execution::Crashed;
     }
 
-    if(result != ChunkType::Check)
+    if(resultedType != ChunkType::Check)
     {
         // Incorrect chunk type returned
         return Execution::Incompatibility;
     }
 
-    execution = Chunk.ToByte(packet[packetSize-1], &result);
+    execution = Chunk.ToByte(packet[packetSize-1], &resultedByte);
     if(execution != Execution::Passed)
     {
         return Execution::Crashed;
     }
 
-    if(result != checkSumToVerify)
+    if(resultedByte != checkSumToVerify)
     {
         return Execution::Failed;
     }
 
-    return Execution::Passed
+    return Execution::Passed;
 }
 /**
  * @brief Check if the ID of a given packet
@@ -116,7 +122,7 @@ Execution cPacket::VerifyID(unsigned short* packet, int packetSize)
     unsigned char result = 255;
 
     // Get ID from packet
-    execution GetID(packet, packetSize, &result);
+    execution = GetID(packet, packetSize, &result);
     if(execution != Execution::Passed)
     {
         return execution;
@@ -143,7 +149,7 @@ Execution cPacket::VerifyID(unsigned short* packet, int packetSize)
 Execution cPacket::GetAmountOfParameters(unsigned short* packet, int packetSize, unsigned char* resultedParamCount)
 {
     Execution execution;
-    unsigned char result = 0;
+    int result = 0;
     unsigned char divCounter = 0;
 
     if(packetSize < 4)
@@ -201,7 +207,7 @@ Execution cPacket::GetAmountOfParameters(unsigned short* packet, int packetSize,
  * @param resultedSegmentSize 
  * @return Execution 
  */
-Execution cPacket::GetParameterSegmentFromBytes(unsigned char* bytesToConvert, unsigned short* resultedSegment, int* byteCount, int* resultedSegmentSize)
+Execution cPacket::GetParameterSegmentFromBytes(unsigned char* bytesToConvert, unsigned short* resultedSegment, int byteCount, int resultedSegmentSize)
 {
     Execution execution;
     unsigned char result = 255;
@@ -209,7 +215,7 @@ Execution cPacket::GetParameterSegmentFromBytes(unsigned char* bytesToConvert, u
 
     if(resultedSegmentSize != (byteCount + 1))
     {
-        Device.SetStatus(INTERNAL_BUFFER_SIZE_ERROR);
+        Device.SetErrorMessage(INTERNAL_BUFFER_SIZE_ERROR);
         return Execution::Failed;
     }
 
@@ -247,7 +253,7 @@ Execution cPacket::AppendSegments(unsigned short* FirstSegment, int sizeOfFirstS
 {
     Execution execution;
 
-    if(sizeOfResult != (sizeOfFirstSegment + sizeOfSecondSegment))
+    if(*sizeOfResult != (sizeOfFirstSegment + sizeOfSecondSegment))
     {
         Device.SetErrorMessage(INTERNAL_BUFFER_SIZE_ERROR);
         return Execution::Failed;
@@ -258,13 +264,13 @@ Execution cPacket::AppendSegments(unsigned short* FirstSegment, int sizeOfFirstS
         appendResult[i] = FirstSegment[i];
     }
 
-    for(int i=sizeOfFirstSegment; i<sizeOfResult; i++)
+    for(int i=sizeOfFirstSegment; i<(*sizeOfResult); i++)
     {
         appendResult[i] = secondSegment[i-sizeOfFirstSegment];
     }
 
     // Check last bytes just in case
-    if(appendResult[sizeOfResult-1] != secondSegment[sizeOfSecondSegment-1])
+    if(appendResult[(*sizeOfResult)-1] != secondSegment[sizeOfSecondSegment-1])
     {
         Device.SetErrorMessage(INTERNAL_PACKET_BUILDING_FAIL);
         return Execution::Failed;
@@ -287,14 +293,14 @@ Execution cPacket::AppendSegments(unsigned short* FirstSegment, int sizeOfFirstS
  * Available size needed to store the resulted packet.
  * @return Execution 
  */
-Execution cPacket::CreateFromSegments(unsigned char functionID, unsigned short* paramSegments, int sizeOfParamSegments, unsigned short* resultedPacket, int* sizeOfResultedPacket)
+Execution cPacket::CreateFromSegments(unsigned char functionID, unsigned short* paramSegments, int sizeOfParamSegments, unsigned short* resultedPacket, int sizeOfResultedPacket)
 {
     Execution execution;
     unsigned short chunkResult = 0;
     unsigned char checksum = functionID;
     unsigned char byteOfChunk = 0;
 
-    if(sizeOfResultedPacket != (paramSegments+2))
+    if(sizeOfResultedPacket != (sizeOfParamSegments+2))
     {
         Device.SetErrorMessage(INTERNAL_BUFFER_SIZE_ERROR);
         return Execution::Crashed;
@@ -346,7 +352,7 @@ Execution cPacket::CreateFromSegments(unsigned char functionID, unsigned short* 
  */
 Execution cPacket::GetParametersFromPacket(unsigned short* packet, int packetSize, unsigned char* resultParameter, int sizeOfResultParameter)
 {
-    Execution execution = 0;
+    Execution execution;
 
     if(sizeOfResultParameter < (packetSize-3)) // There is 3 useless passengers in there.
     {
@@ -357,10 +363,11 @@ Execution cPacket::GetParametersFromPacket(unsigned short* packet, int packetSiz
     // Get the singular passenger class from the plane
     for(int i=2; i<sizeOfResultParameter; i++)
     {
-        unsigned char result = 0;
+        unsigned char resultByte = 0;
+        int resultType = 0;
         unsigned short chunk = packet[i];
         // Get the type
-        execution = Chunk.ToType(chunk, &result);
+        execution = Chunk.ToType(chunk, &resultType);
         if(execution != Execution::Passed)
         {
             Device.SetErrorMessage(INTERNAL_CHUNK_CONVERTION_FAIL);
@@ -368,21 +375,21 @@ Execution cPacket::GetParametersFromPacket(unsigned short* packet, int packetSiz
         }
 
         // There is other types of chunk in this singular parameter function? Huh...
-        if(result != ChunkType::Byte)
+        if(resultType != ChunkType::Byte)
         {
             Device.SetErrorMessage("INTERNAL param conversion fail");
             return Execution::Crashed; 
         }
 
         // Convert to byte
-        execution = Chunk.ToByte(chunk, &result);
+        execution = Chunk.ToByte(chunk, &resultByte);
         if(execution != Execution::Passed)
         {
             Device.SetErrorMessage(INTERNAL_CHUNK_CONVERTION_FAIL);
             return Execution::Crashed;
         }
 
-        resultParameter[i-2] = result;
+        resultParameter[i-2] = resultByte;
     }
     return Execution::Passed;
 }

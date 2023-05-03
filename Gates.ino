@@ -64,7 +64,7 @@ Execution cGateFoundation::GetStatus(unsigned char* currentStatus)
  */
 Execution cGateFoundation::_VerifyArrival(unsigned char planeID, unsigned short* arrivedPlane, int planeSize)
 {
-    Execution execution = 0;
+    Execution execution;
 
     if(planeSize > maxSizeOfPlane)
     {
@@ -107,7 +107,7 @@ Execution cGateFoundation::_VerifyArrival(unsigned char planeID, unsigned short*
  */
 Execution cGateFoundation::_SendErrorPlane(unsigned char errorCode)
 {
-
+    return Execution::Passed;
 }
 
 
@@ -119,12 +119,12 @@ Execution cGateFoundation::_SendErrorPlane(unsigned char errorCode)
  */
 Execution cGateFoundation::_CanPlaneTaxi()
 {
-    Execution execution = 0;
+    Execution execution;
 
     if(status == GateStatus::ReadyForDeparture)
     {
         // Is the terminal available for planes?
-        execution _AskMasterTerminalForDeparture(maxSizeOfPlane);
+        execution = _AskMasterTerminalForDeparture(maxSizeOfPlane);
         if(execution != Execution::Passed)
         {
             // The gate cant allow planes to queue in on the Master terminal's taxiway
@@ -180,6 +180,8 @@ Execution cDeparture_Ping::Update()
     {
         // - CALCULATE TIMEOUT HERE - //
     }
+
+    return Execution::Passed;
 }
 
 /**
@@ -197,7 +199,7 @@ Execution cDeparture_Ping::Update()
 Execution cDeparture_Ping::_GetPlaneContent(unsigned short* departingPlane, int* planeSize)
 {
     Execution execution;
-    unsigned char convertedVariable = {0};
+    unsigned char convertedVariable[4];
     unsigned short temporaryBuffer[4];
 
     if(status != GateStatus::JustLeft)
@@ -221,7 +223,8 @@ Execution cDeparture_Ping::_GetPlaneContent(unsigned short* departingPlane, int*
         return Execution::Crashed;
     }
 
-    execution = Packet.CreateFromSegments(gateID, temporaryBuffer, 4, departingPlane, 4);
+    int resultedPacketSize = 4;
+    execution = Packet.CreateFromSegments(gateID, temporaryBuffer, 4, departingPlane, resultedPacketSize);
     if(execution != Execution::Passed)
     {
         Device.SetErrorMessage(INTERNAL_PACKET_BUILDING_FAIL);
@@ -248,6 +251,7 @@ Execution cDeparture_Ping::_GetPlaneContent(unsigned short* departingPlane, int*
 Execution cDeparture_Ping::_DockPlane(unsigned char planeID, unsigned short* planeToDock, int planeSize)
 {
     Execution execution;
+    unsigned char valuesArray[4];
 
     // Basic arrival verifications. We don't want imposter planes.
     execution = _VerifyArrival(planeID, planeToDock, planeSize);
@@ -257,7 +261,6 @@ Execution cDeparture_Ping::_DockPlane(unsigned char planeID, unsigned short* pla
         return execution;
     }
 
-    unsigned char valuesArray = {0};
     execution = Packet.GetParametersFromPacket(planeToDock, planeSize, valuesArray, 1);
     if(execution != Execution::Passed)
     {
@@ -332,297 +335,297 @@ Execution cDeparture_Ping::Read(bool* resultedValue)
  * and update their saved status of your device aswell.
  * Call the Request method to initiate a ping request.
  */
-class cDeparture_StatusUpdate: public cGateFoundation
-{
-  private:
-      unsigned char _receivedStatus = false;
-  public:
-      /// @brief Constructor
-      cDeparture_StatusUpdate();
+// class cDeparture_StatusUpdate: public cGateFoundation
+// {
+//   private:
+//       unsigned char _receivedStatus = false;
+//   public:
+//       /// @brief Constructor
+//       cDeparture_StatusUpdate();
 
-      /// @brief Time base handler of the class
-      /// @return 
-      Execution Update();
+//       /// @brief Time base handler of the class
+//       /// @return 
+//       Execution Update();
 
-      /**
-       * @brief Attempt to dock a plane to this gate.
-       * 
-       * @param planeToDock
-       * Array of chunks.
-       * @param planeSize 
-       * Size of the plane (how big is the array of chunks)
-       * @return Execution 
-       */
-      Execution _DockPlane(unsigned short* planeToDock, int planeSize);
+//       /**
+//        * @brief Attempt to dock a plane to this gate.
+//        * 
+//        * @param planeToDock
+//        * Array of chunks.
+//        * @param planeSize 
+//        * Size of the plane (how big is the array of chunks)
+//        * @return Execution 
+//        */
+//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
 
-      /**
-       * @brief The method called to send a
-       * function to the other device and await
-       * the answer.
-       * 
-       * @attention
-       * This sends Device.Status
-       * @return Execution::Passed =  ping is sending
-       */
-      Execution Request();
+//       /**
+//        * @brief The method called to send a
+//        * function to the other device and await
+//        * the answer.
+//        * 
+//        * @attention
+//        * This sends Device.Status
+//        * @return Execution::Passed =  ping is sending
+//        */
+//       Execution Request();
 
-      /**
-       * @brief The method called to read the other
-       * device's answer to the function that was requested
-       * the answer.
-       * @return Execution::Passed = Reading worked.
-       */
-      Execution Read(unsigned char* resultedStatus);
-}
+//       /**
+//        * @brief The method called to read the other
+//        * device's answer to the function that was requested
+//        * the answer.
+//        * @return Execution::Passed = Reading worked.
+//        */
+//       Execution Read(unsigned char* resultedStatus);
+// }
 
-/**
- * @brief Class used to update the error message
- * saved on other devices aswell as get theirs.
- * Call the Request method to initiate an error
- * message update request.
- */
-class cDeparture_ErrorMessageUpdate: public cGateFoundation
-{
-  private:
-      std::string _receivedMessage = false;
-  public:
-      /// @brief Constructor
-      cDeparture_ErrorMessageUpdate();
+// /**
+//  * @brief Class used to update the error message
+//  * saved on other devices aswell as get theirs.
+//  * Call the Request method to initiate an error
+//  * message update request.
+//  */
+// class cDeparture_ErrorMessageUpdate: public cGateFoundation
+// {
+//   private:
+//       std::string _receivedMessage = false;
+//   public:
+//       /// @brief Constructor
+//       cDeparture_ErrorMessageUpdate();
 
-      /// @brief Time base handler of the class
-      /// @return 
-      Execution Update();
+//       /// @brief Time base handler of the class
+//       /// @return 
+//       Execution Update();
 
-      /**
-       * @brief Attempt to dock a plane to this gate.
-       * 
-       * @param planeToDock
-       * Array of chunks.
-       * @param planeSize 
-       * Size of the plane (how big is the array of chunks)
-       * @return Execution 
-       */
-      Execution _DockPlane(unsigned short* planeToDock, int planeSize);
+//       /**
+//        * @brief Attempt to dock a plane to this gate.
+//        * 
+//        * @param planeToDock
+//        * Array of chunks.
+//        * @param planeSize 
+//        * Size of the plane (how big is the array of chunks)
+//        * @return Execution 
+//        */
+//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
 
-      /**
-       * @brief The method called to send a
-       * function to the other device and await
-       * the answer.
-       * 
-       * @attention
-       * This sends Device.errormessage automatically
-       * @return Execution::Passed = plane is now on taxiway
-       */
-      Execution Request();
+//       /**
+//        * @brief The method called to send a
+//        * function to the other device and await
+//        * the answer.
+//        * 
+//        * @attention
+//        * This sends Device.errormessage automatically
+//        * @return Execution::Passed = plane is now on taxiway
+//        */
+//       Execution Request();
 
-      /**
-       * @brief The method called to read the other
-       * device's answer to the function that was requested
-       * the answer.
-       * @return Execution::Passed = Reading worked.
-       */
-      Execution Read(std::string& resultedStatus);
-}
+//       /**
+//        * @brief The method called to read the other
+//        * device's answer to the function that was requested
+//        * the answer.
+//        * @return Execution::Passed = Reading worked.
+//        */
+//       Execution Read(std::string& resultedStatus);
+// }
 
-/**
- * @brief Class used to update the type
- * saved on other devices aswell as get theirs.
- * Call the Request method to initiate a type
- * update request.
- */
-class cDeparture_TypeUpdate: public cGateFoundation
-{
-  private:
-      unsigned char _receivedType = 0;
-  public:
-      /// @brief Constructor
-      cDeparture_TypeUpdate();
+// /**
+//  * @brief Class used to update the type
+//  * saved on other devices aswell as get theirs.
+//  * Call the Request method to initiate a type
+//  * update request.
+//  */
+// class cDeparture_TypeUpdate: public cGateFoundation
+// {
+//   private:
+//       unsigned char _receivedType = 0;
+//   public:
+//       /// @brief Constructor
+//       cDeparture_TypeUpdate();
 
-      /// @brief Time base handler of the class
-      /// @return 
-      Execution Update();
+//       /// @brief Time base handler of the class
+//       /// @return 
+//       Execution Update();
 
-      /**
-       * @brief Attempt to dock a plane to this gate.
-       * 
-       * @param planeToDock
-       * Array of chunks.
-       * @param planeSize 
-       * Size of the plane (how big is the array of chunks)
-       * @return Execution 
-       */
-      Execution _DockPlane(unsigned short* planeToDock, int planeSize);
+//       /**
+//        * @brief Attempt to dock a plane to this gate.
+//        * 
+//        * @param planeToDock
+//        * Array of chunks.
+//        * @param planeSize 
+//        * Size of the plane (how big is the array of chunks)
+//        * @return Execution 
+//        */
+//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
 
-      /**
-       * @brief The method called to send a
-       * function to the other device and await
-       * the answer.
-       * 
-       * @attention
-       * This sends Device.type automatically
-       * @return Execution::Passed = plane is now on taxiway
-       */
-      Execution Request();
+//       /**
+//        * @brief The method called to send a
+//        * function to the other device and await
+//        * the answer.
+//        * 
+//        * @attention
+//        * This sends Device.type automatically
+//        * @return Execution::Passed = plane is now on taxiway
+//        */
+//       Execution Request();
 
-      /**
-       * @brief The method called to read the other
-       * device's answer to the function that was requested
-       * the answer.
-       * @return Execution::Passed = Reading worked.
-       */
-      Execution Read(unsigned char* resultedType);
-}
+//       /**
+//        * @brief The method called to read the other
+//        * device's answer to the function that was requested
+//        * the answer.
+//        * @return Execution::Passed = Reading worked.
+//        */
+//       Execution Read(unsigned char* resultedType);
+// }
 
-/**
- * @brief Class used to update the ID
- * saved on other devices aswell as get theirs.
- * Call the Request method to initiate an ID
- * update request.
- */
-class cDeparture_IDUpdate: public cGateFoundation
-{
-  private:
-      unsigned long long _receivedID = 0;
-  public:
-      /// @brief Constructor
-      cDeparture_IDUpdate();
+// /**
+//  * @brief Class used to update the ID
+//  * saved on other devices aswell as get theirs.
+//  * Call the Request method to initiate an ID
+//  * update request.
+//  */
+// class cDeparture_IDUpdate: public cGateFoundation
+// {
+//   private:
+//       unsigned long long _receivedID = 0;
+//   public:
+//       /// @brief Constructor
+//       cDeparture_IDUpdate();
 
-      /// @brief Time base handler of the class
-      /// @return 
-      Execution Update();
+//       /// @brief Time base handler of the class
+//       /// @return 
+//       Execution Update();
 
-      /**
-       * @brief Attempt to dock a plane to this gate.
-       * 
-       * @param planeToDock
-       * Array of chunks.
-       * @param planeSize 
-       * Size of the plane (how big is the array of chunks)
-       * @return Execution 
-       */
-      Execution _DockPlane(unsigned short* planeToDock, int planeSize);
+//       /**
+//        * @brief Attempt to dock a plane to this gate.
+//        * 
+//        * @param planeToDock
+//        * Array of chunks.
+//        * @param planeSize 
+//        * Size of the plane (how big is the array of chunks)
+//        * @return Execution 
+//        */
+//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
 
-      /**
-       * @brief The method called to send a
-       * function to the other device and await
-       * the answer.
-       * 
-       * @attention
-       * This sends Device.type automatically
-       * @return Execution::Passed = plane is now on taxiway
-       */
-      Execution Request();
+//       /**
+//        * @brief The method called to send a
+//        * function to the other device and await
+//        * the answer.
+//        * 
+//        * @attention
+//        * This sends Device.type automatically
+//        * @return Execution::Passed = plane is now on taxiway
+//        */
+//       Execution Request();
 
-      /**
-       * @brief The method called to read the other
-       * device's answer to the function that was requested
-       * the answer.
-       * @return Execution::Passed = Reading worked.
-       */
-      Execution Read(unsigned long long* resultedID);
-}
+//       /**
+//        * @brief The method called to read the other
+//        * device's answer to the function that was requested
+//        * the answer.
+//        * @return Execution::Passed = Reading worked.
+//        */
+//       Execution Read(unsigned long long* resultedID);
+// }
 
-/**
- * @brief Class used to request a reset of 
- * the other device's protocol functions as well
- * as saved parameters
- */
-class cDeparture_RestartProtocol: public cGateFoundation
-{
-  private:
-      bool _acknowledged = 0;
-  public:
-      /// @brief Constructor
-      cDeparture_RestartProtocol();
+// /**
+//  * @brief Class used to request a reset of 
+//  * the other device's protocol functions as well
+//  * as saved parameters
+//  */
+// class cDeparture_RestartProtocol: public cGateFoundation
+// {
+//   private:
+//       bool _acknowledged = 0;
+//   public:
+//       /// @brief Constructor
+//       cDeparture_RestartProtocol();
 
-      /// @brief Time base handler of the class
-      /// @return 
-      Execution Update();
+//       /// @brief Time base handler of the class
+//       /// @return 
+//       Execution Update();
 
-      /**
-       * @brief Attempt to dock a plane to this gate.
-       * 
-       * @param planeToDock
-       * Array of chunks.
-       * @param planeSize 
-       * Size of the plane (how big is the array of chunks)
-       * @return Execution 
-       */
-      Execution _DockPlane(unsigned short* planeToDock, int planeSize);
+//       /**
+//        * @brief Attempt to dock a plane to this gate.
+//        * 
+//        * @param planeToDock
+//        * Array of chunks.
+//        * @param planeSize 
+//        * Size of the plane (how big is the array of chunks)
+//        * @return Execution 
+//        */
+//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
 
-      /**
-       * @brief The method called to send a
-       * function to the other device and await
-       * the answer.
-       * 
-       * @attention
-       * This sends Device.type automatically
-       * @return Execution::Passed = plane is now on taxiway
-       */
-      Execution Request();
+//       /**
+//        * @brief The method called to send a
+//        * function to the other device and await
+//        * the answer.
+//        * 
+//        * @attention
+//        * This sends Device.type automatically
+//        * @return Execution::Passed = plane is now on taxiway
+//        */
+//       Execution Request();
 
-      /**
-       * @brief The method called to read the other
-       * device's answer to the function that was requested
-       * the answer.
-       * @return Execution::Passed = Reading worked.
-       */
-      Execution Read(bool* acknowledgment);
-}
+//       /**
+//        * @brief The method called to read the other
+//        * device's answer to the function that was requested
+//        * the answer.
+//        * @return Execution::Passed = Reading worked.
+//        */
+//       Execution Read(bool* acknowledgment);
+// }
 
-/**
- * @brief Class used to request an update of 
- * the other device's saved universal information as well
- * update your device's saved information about that device.
- */
-class cDeparture_UniversalInfosUpdate: public cGateFoundation
-{
-  private:
-      unsigned long long* _receivedID = 0;
-      unsigned long long* _receivedBFIOVersion = 0;
-      unsigned char* _receivedType = 0;
-      unsigned char* _receivedStatus = 0;
-      std::string _receivedGitRepository = "";
-      std::string _receivedDeviceName = "";
-      std::string _receivedDeviceVersion = "";
-  public:
-      /// @brief Constructor
-      cDeparture_UniversalInfosUpdate();
+// /**
+//  * @brief Class used to request an update of 
+//  * the other device's saved universal information as well
+//  * update your device's saved information about that device.
+//  */
+// class cDeparture_UniversalInfosUpdate: public cGateFoundation
+// {
+//   private:
+//       unsigned long long* _receivedID = 0;
+//       unsigned long long* _receivedBFIOVersion = 0;
+//       unsigned char* _receivedType = 0;
+//       unsigned char* _receivedStatus = 0;
+//       std::string _receivedGitRepository = "";
+//       std::string _receivedDeviceName = "";
+//       std::string _receivedDeviceVersion = "";
+//   public:
+//       /// @brief Constructor
+//       cDeparture_UniversalInfosUpdate();
 
-      /// @brief Time base handler of the class
-      /// @return 
-      Execution Update();
+//       /// @brief Time base handler of the class
+//       /// @return 
+//       Execution Update();
 
-      /**
-       * @brief Attempt to dock a plane to this gate.
-       * 
-       * @param planeToDock
-       * Array of chunks.
-       * @param planeSize 
-       * Size of the plane (how big is the array of chunks)
-       * @return Execution 
-       */
-      Execution _DockPlane(unsigned short* planeToDock, int planeSize);
+//       /**
+//        * @brief Attempt to dock a plane to this gate.
+//        * 
+//        * @param planeToDock
+//        * Array of chunks.
+//        * @param planeSize 
+//        * Size of the plane (how big is the array of chunks)
+//        * @return Execution 
+//        */
+//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
 
-      /**
-       * @brief The method called to send a
-       * function to the other device and await
-       * the answer.
-       * 
-       * @attention
-       * This sends informations automatically.
-       * @return Execution::Passed = plane is now on taxiway
-       */
-      Execution Request();
+//       /**
+//        * @brief The method called to send a
+//        * function to the other device and await
+//        * the answer.
+//        * 
+//        * @attention
+//        * This sends informations automatically.
+//        * @return Execution::Passed = plane is now on taxiway
+//        */
+//       Execution Request();
 
-      /**
-       * @brief The method called to read the other
-       * device's answer to the function that was requested
-       * the answer.
-       * @return Execution::Passed = Reading worked.
-       */
-      Execution Read(unsigned long long* receivedID, unsigned long long* receivedBFIOVersion, unsigned char* receivedType, unsigned char* receivedStatus, std::string& receivedGitRepository, std::string& receivedDeviceName, std::string& receivedDeviceVersion);
-}
+//       /**
+//        * @brief The method called to read the other
+//        * device's answer to the function that was requested
+//        * the answer.
+//        * @return Execution::Passed = Reading worked.
+//        */
+//       Execution Read(unsigned long long* receivedID, unsigned long long* receivedBFIOVersion, unsigned char* receivedType, unsigned char* receivedStatus, std::string& receivedGitRepository, std::string& receivedDeviceName, std::string& receivedDeviceVersion);
+// }
 #pragma endregion
 #pragma endregion
 //=============================================//
@@ -630,5 +633,3 @@ class cDeparture_UniversalInfosUpdate: public cGateFoundation
 //=============================================//
 #pragma region -Arrival Gates-
 #pragma endregion
-
-#endif

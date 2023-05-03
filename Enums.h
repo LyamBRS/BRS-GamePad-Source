@@ -175,7 +175,7 @@ enum TerminalStatus
 enum GateStatus
 {
     /// @brief The class has just been initialised
-    Initialised,
+    Cleaned,
     /// @brief The function is available and can be sent through a terminal.
     ReadyForDeparture,
     /// @brief The function is waiting for an arrival after it departed on the highway
