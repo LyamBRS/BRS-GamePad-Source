@@ -24,6 +24,7 @@
 #pragma endregion
 
 #pragma region Class
+
 cPacket::cPacket()
 {
   built = true;
@@ -81,6 +82,12 @@ Execution cPacket::VerifyCheckSum(unsigned short* packet, int packetSize, unsign
     Execution execution;
     int resultedType = 255;
     unsigned char resultedByte = 255;
+
+    if(packetSize < 2)
+    {
+        // What even are you trying to verify bruh
+        return Execution::Crashed;
+    }
 
     execution = Chunk.ToType(packet[packetSize-1], &resultedType);
     if(execution != Execution::Passed)
@@ -150,11 +157,13 @@ Execution cPacket::GetAmountOfParameters(unsigned short* packet, int packetSize,
 {
     Execution execution;
     int result = 0;
-    unsigned char divCounter = 0;
+    unsigned char divisionCounter;
+    divisionCounter = 0;
+    *resultedParamCount = 0;
 
     if(packetSize < 4)
     {
-        if(packetSize <= 2)
+        if(packetSize == 2)
         {
             *resultedParamCount = 0;
             return Execution::Unecessary;
@@ -173,6 +182,7 @@ Execution cPacket::GetAmountOfParameters(unsigned short* packet, int packetSize,
     {
         for(int currentChunk = 0; currentChunk < packetSize; currentChunk++)
         {
+            result = 0;
             execution = Chunk.ToType(packet[currentChunk], &result);
             if(execution != Execution::Passed)
             {
@@ -183,18 +193,20 @@ Execution cPacket::GetAmountOfParameters(unsigned short* packet, int packetSize,
 
             if(result == ChunkType::Div)
             {
-                divCounter++;
+                divisionCounter++;
             }
         }
 
-        if(divCounter == 0)
+        switch(divisionCounter)
         {
-            Device.SetErrorMessage(FREE_BYTES_IN_PACKET);
-            return Execution::Failed;
-        }
-        else
-        {
-            *resultedParamCount = divCounter;
+          case(0):
+              Device.SetErrorMessage("Detected free bytes in packet");
+              return Execution::Failed;
+              break;
+          
+          default:
+              *resultedParamCount = divisionCounter;
+              return Execution::Passed;
         }
     }
 }

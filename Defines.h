@@ -51,6 +51,8 @@
         #define UT_CSWITCH_ERROR_CODE 6,200,5000
         ///@brief Error code given when cBFIO fails its unit test.
         #define UT_CBFIO_ERROR_CODE 7,200,5000
+        ///@brief Error code given when cBFIO fails its unit test.
+        #define UT_CPACKET_ERROR_CODE 8,200,5000
     #pragma endregion
   #pragma endregion
 

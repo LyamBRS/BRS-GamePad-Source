@@ -28,6 +28,8 @@ Execution cDevice::GetStatus(int* statusPointer)
     else{
         return Execution::Passed;
     }
+
+  return Execution::Bypassed;
 }
 
 Execution cDevice::SetStatus(int newStatus)
@@ -121,4 +123,29 @@ Execution cDevice::SetStatus(int newStatus)
           return Execution::Failed;
         break;
     }
+  return Execution::Bypassed;
+}
+
+/**
+ * @brief Set the Error Message of the device
+ * that other BFIO terminals can get access to.
+ * 
+ * @param NewErrorMessage 
+ * @return Execution 
+ */
+Execution cDevice::SetErrorMessage(std::string NewErrorMessage)
+{
+  return Execution::Bypassed;
+}
+
+/**
+ * @brief Set the Error Message of the device
+ * that other BFIO terminals can get access to.
+ * 
+ * @param NewErrorMessage 
+ * @return Execution 
+ */
+Execution cDevice::SetErrorMessage(const char* NewErrorMessage)
+{
+  return Execution::Bypassed;
 }

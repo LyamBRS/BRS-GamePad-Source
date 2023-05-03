@@ -212,6 +212,20 @@ Execution TestAllUnits()
         return testResults;
     }
 
+    testResults = cPacket_LaunchTests();
+    if(testResults == Execution::Bypassed)
+    {
+        Serial.println("#############################");
+        Serial.println("! ! !- TEST  BYPASSED - ! ! !");
+        Serial.println("#############################");    
+    }
+    if(testResults == Execution::Failed)
+    {
+        Rgb.SetColors(UT_ERROR_COLOR);
+        Rgb.SetErrorMode(UT_CPACKET_ERROR_CODE);
+        return testResults;
+    }
+
     // SETTING SUCCESSFUL UNIT TEST RGB COLOR
     Rgb.SetColors(UT_PASSED_COLOR);
     Rgb.SetErrorMode(UT_PASSED_CODE);

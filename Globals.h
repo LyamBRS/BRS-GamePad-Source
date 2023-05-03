@@ -38,13 +38,14 @@
 #include "Chunk.h"
 #include "Data.h"
 #include "Packet.h"
-#include "Joystick.h"
 #include "Terminal.h"
 #include "Gates.h"
+#include "Joystick.h"
 #include "_UNIT_TEST_Rgb.h"
 #include "_UNIT_TEST_Data.h"
 #include "_UNIT_TEST_Chunk.h"
 #include "_UNIT_TEST_Joystick.h"
+#include "_UNIT_TEST_Packet.h"
 #include "_UNIT_TEST.h"
 
 ///@brief RGB LED uses GPIO 48
@@ -168,6 +169,9 @@ Execution InitializeProject()
     Device = cDevice();
     Chunk = cChunk();
     Data = cData();
+    Packet = cPacket();
+    SlaveTerminal = cTerminal();
+    MasterTerminal = cTerminal();
     LeftJoystick = cJoystick(LEFT_JOYSTICK_X_PIN, LEFT_JOYSTICK_Y_PIN, LEFT_JOYSTICK_SWITCH_PIN);
     RightJoystick = cJoystick(RIGHT_JOYSTICK_X_PIN, RIGHT_JOYSTICK_Y_PIN, RIGHT_JOYSTICK_SWITCH_PIN);
 
@@ -186,39 +190,48 @@ Execution TestInitialization()
 {
     Serial.println("Project test: -> START");
 
-    if(!Rgb.built)
-    {
+    if(!Rgb.built){
         Serial.println("Project test: -> RGB OBJECT FAIL");
         return Execution::Failed;
     }
 
-    if(!Device.built)
-    {
+    if(!Device.built){
         Serial.println("Project test: -> DEVICE OBJECT FAIL");
         return Execution::Failed;
     }
 
-    if(!Chunk.built)
-    {
+    if(!Chunk.built){
         Serial.println("Project test: -> CHUNK OBJECT FAIL");
         return Execution::Failed;
     }
 
-    if(!Data.built)
-    {
+    if(!Data.built){
         Serial.println("Project test: -> DATA OBJECT FAIL");
         return Execution::Failed;
     }
 
-    if(!LeftJoystick.built)
-    {
+    if(!LeftJoystick.built){
       Serial.println("Project test: -> LEFTJOYSTICK OBJECT FAIL");
       return Execution::Failed;
     }
 
-    if(!RightJoystick.built)
-    {
+    if(!RightJoystick.built){
       Serial.println("Project test: -> RIGHTJOYSTICK OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!Packet.built){
+      Serial.println("Project test: -> PACKET OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!MasterTerminal.built){
+      Serial.println("Project test: -> MASTERTERMINAL OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!SlaveTerminal.built){
+      Serial.println("Project test: -> SLAVETERMINAL OBJECT FAIL");
       return Execution::Failed;
     }
 

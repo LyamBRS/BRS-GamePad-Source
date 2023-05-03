@@ -107,7 +107,7 @@ Execution cTerminal::_HandlePlaneArrival(unsigned short newChunkArrival)
             Device.SetErrorMessage(STRAY_CHUNK_RECEIVED);   
         }
     }
-
+  return Execution::Bypassed;
 }
 
 /**

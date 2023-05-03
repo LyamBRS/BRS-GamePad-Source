@@ -303,6 +303,7 @@ Execution cDeparture_Ping::Request(bool pingToSend)
     // Plane successfully started taxxing up to the runway!
     _ping = pingToSend;
     status = GateStatus::JustLeft;
+    return Execution::Passed;
 }
 
 /**

@@ -45,7 +45,7 @@ void setup() {
     Device.SetStatus(Status::SoftwareError);
   }
 
-  for(int i=0; i<1000; ++i)
+  for(int i=0; i<5000; ++i)
   {
     Rgb.Update();
     delay(1);

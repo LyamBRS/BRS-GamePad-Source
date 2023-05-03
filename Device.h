@@ -78,6 +78,15 @@ class cDevice
          * @return Execution 
          */
         Execution SetErrorMessage(std::string NewErrorMessage);
+
+        /**
+         * @brief Set the Error Message of the device
+         * that other BFIO terminals can get access to.
+         * 
+         * @param NewErrorMessage 
+         * @return Execution 
+         */
+        Execution SetErrorMessage(const char* NewErrorMessage);
  };
 
 #endif
