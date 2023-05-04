@@ -147,5 +147,6 @@ Execution cDevice::SetErrorMessage(std::string NewErrorMessage)
  */
 Execution cDevice::SetErrorMessage(const char* NewErrorMessage)
 {
-  return Execution::Bypassed;
+    Serial.println(NewErrorMessage);
+    return Execution::Bypassed;
 }

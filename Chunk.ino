@@ -74,6 +74,8 @@ Execution cChunk::ToByte(unsigned short chunkToConvert, unsigned char* resultedB
 {
     if(chunkToConvert > 1023)
     {
+        Device.SetErrorMessage("77:Chunk -> Chunk above 1203  ");
+        Serial.println(chunkToConvert);
         return Execution::Failed;
     }
     else

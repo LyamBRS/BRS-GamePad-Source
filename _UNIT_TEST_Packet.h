@@ -109,6 +109,8 @@ Execution TEST_PACKET_CreateFromSegments();
  */
 Execution TEST_PACKET_GetParametersFromPacket();
 
+Execution TEST_PACKET_EntireProcess();
+
 /**
  * @brief Unit test function which returns
  * Execution::Passed if packet works

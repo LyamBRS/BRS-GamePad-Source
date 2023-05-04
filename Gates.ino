@@ -261,7 +261,7 @@ Execution cDeparture_Ping::_DockPlane(unsigned char planeID, unsigned short* pla
         return execution;
     }
 
-    execution = Packet.GetParametersFromPacket(planeToDock, planeSize, valuesArray, 1);
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 1);
     if(execution != Execution::Passed)
     {
         // Failed :(

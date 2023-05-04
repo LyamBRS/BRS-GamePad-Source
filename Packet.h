@@ -73,6 +73,16 @@ class cPacket
         Execution VerifyCheckSum(unsigned short* packet, int packetSize, unsigned char checkSumToverify);
 
         /**
+         * @brief Puts the total size of a packet
+         * in a pointer. Returns Execution::Passed if
+         * its successful.
+         * @param packet 
+         * @param resultedPacketsize 
+         * @return Execution::Passed = size found | Execution::Crashed = No end found | Execution::Incompatibility = Did not start with a start chunk
+         */
+        Execution GetTotalSize(unsigned short* packet, int* resultedPacketsize);
+
+        /**
          * @brief Check if the ID of a given packet
          * corresponds to the list of supported IDs of
          * your device.
@@ -136,15 +146,55 @@ class cPacket
         Execution CreateFromSegments(unsigned char functionID, unsigned short* paramSegments, int sizeOfParamSegments, unsigned short* resultedPacket, int sizeOfResultedPacket);
 
         /**
-         * @brief Get a segment from a packet with only 1 segment.
+         * @brief Gets a specific segment from a
+         * given packet/plane in bytes.
          * A segment is an array of unsigned char
-         * @param packet 
+         * @param packet
+         * An array of segment or parameter segment or validated packet to get an array of bytes from.
          * @param packetSize 
+         * The size of the array to extract bytes from.
          * @param resultParameter 
+         * Array of bytes where the parameter will be stored.
+         * @param segmentNumber
+         * Which segment of the array to extract bytes from. STARTS AT 1.
          * @param sizeOfResultParameter 
+         * How much space is available to store that array.
          * @return Execution 
          */
-        Execution GetParametersFromPacket(unsigned short* packet, int packetSize, unsigned char* resultParameter, int sizeOfResultParameter);
+        Execution GetBytes(unsigned short* packet, int packetSize, int segmentNumber, unsigned char* resultParameter, int sizeOfResultParameter);
+        /**
+         * @brief Get the array of unsigned char values from
+         * a plane's valid segment. the segment must start with
+         * a Div Chunk.
+         * 
+         * @param paramSegment
+         * The segment to extract bytes from 
+         * @param sizeOfParameterSegment 
+         * How many chunks total is in the segment?
+         * @param resultedBytes 
+         * Array where the extracted bytes from the segment will be placed.
+         * @param sizeOfResultedBytes 
+         * The extracted bytes array must be at least 1 less than the size
+         * of the parameter segment.
+         * @return Execution::Passed = Worked | Execution::Failed = Parameter segment is wrong | Execution::Crashed = Internal functions could not execute.
+         */
+        Execution GetBytesFromParameterSegment(unsigned short* paramSegment, int sizeOfParameterSegment, unsigned char* resultedBytes, int sizeOfResultedBytes);
+
+        /**
+         * @brief Function that fully analyzes a
+         * given packet of any size.
+         * 
+         * @param packetToAnalyze
+         * The unkown packet that needs to be analyzed
+         * @param resultedPacketsize 
+         * The total size of the packet including start and check chunks.
+         * @param amountOfParameters 
+         * How many parameters were found in that pakcet.
+         * @param packetID 
+         * The extracted ID from the packet.
+         * @return Execution::Passed = size found | Execution::Crashed = fatal analisis error | Execution::Incompatibility = Not in BFIO ids | Execution::Failed Something went wrong
+         */
+        Execution FullyAnalyze(unsigned short* packetToAnalyze, int* resultedPacketsize, int* amountOfParameters, unsigned char* packetID);
 };
 #pragma endregion
 

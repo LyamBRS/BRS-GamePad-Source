@@ -23,6 +23,7 @@
 //=============================================//
 #define BFIO_TIMEOUT_MS 1000
 #define _AMOUNT_OF_SUPPORTED_ID 20
+#define MAX_PLANE_PASSENGER_CAPACITY 255
 
 unsigned char supportedBFIOIDs[_AMOUNT_OF_SUPPORTED_ID] = {
     0, // [MANDATORY]  - Ping(None)

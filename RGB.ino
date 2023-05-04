@@ -338,7 +338,7 @@ Execution RGB::UpdateColors()
   {
     if(errorLightState)
     {
-        WS2812.setPixelColor(0, WS2812.Color(wantedRed, wantedBlue, wantedGreen));
+        WS2812.setPixelColor(0, WS2812.Color(wantedRed, wantedGreen, wantedBlue));
     }
     else
     {

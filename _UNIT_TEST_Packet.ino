@@ -275,7 +275,7 @@ Execution TEST_PACKET_VerifyID()
     planeA[0] = 0b0000001011111111;
     execution = Packet.VerifyID(planeA, 4);
     TestStepDone();
-    if(execution != Execution::Failed)
+    if(execution != Execution::Incompatibility)
     {
         TestFailed("Packet.VerifyID did not return Execution::Failed when invalid ID was given.");
         return Execution::Failed;
@@ -412,36 +412,361 @@ Execution TEST_PACKET_GetParameterSegmentFromBytes()
 {
     TestStart("GetParameterSegmentFromBytes");
     Execution execution;
-    unsigned char convertedBool[16];
-    unsigned short resultedSegment[17];
+    unsigned char convertedBytes[45];
+    unsigned short resultedSegment[45];
 
     #pragma region -Bool convertion-
+    bool boolToSend = true;
+    bool boolReceived = false;
 
-    bool variableToConvert = true;
-    execution = Data.ToBytes(variableToConvert, convertedBool, 1);
+    #pragma region --ToByte--
+    execution = Data.ToBytes(boolToSend, convertedBytes, 1);
     TestStepDone();
     if(execution != Execution::Passed)
     {
-        TestFailed("Failed to convert bool to bytes");
+        TestFailed("427: Failed Data.ToBytes");
         return Execution::Failed;
     }
-
-    execution = Packet.GetParameterSegmentFromBytes(convertedBool, resultedSegment, 1, 2);
+    #pragma endregion
+    #pragma region --GetParameterSegmentFromBytes--
+    execution = Packet.GetParameterSegmentFromBytes(convertedBytes, resultedSegment, 1, 2);
     TestStepDone();
     if(execution != Execution::Passed)
     {
-        TestFailed("Failed to get packet segment from byte bool.");
+        TestFailed("436: Failed to get packet segment from bytes");
         return Execution::Failed;
     }
-
+    #pragma endregion
+    #pragma region --IsFirstPassengerDiv?-
+    TestStepDone();
     if(resultedSegment[0] != ChunkType::Div)
     {
-        TestFailed("First chunk of segment is not a div chunk.");
+        TestFailed("443: First chunk of segment is not a div chunk.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertSegmentBack--
+    execution = Packet.GetBytesFromParameterSegment(resultedSegment, 2, convertedBytes, 1);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("450: GetBytes failed to return appropriate execution");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertValueBack--
+    execution = Data.ToData(&boolReceived, convertedBytes, 1);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("459: Incorrect execution returned from Data.ToData");
         return Execution::Failed;
     }
 
     #pragma endregion
+    #pragma region --CompareValues--
+    TestStepDone();
+    if(boolToSend != boolReceived)
+    {
+        TestFailed("467: converted values did not match.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma endregion
+    #pragma region -Short convertion-
+    short shortToSend = 0xAA;
+    short shortReceived = 0;
 
+    #pragma region --ToByte--
+    execution = Data.ToBytes(shortToSend, convertedBytes, 2);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("486: Failed Data.ToBytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --GetParameterSegmentFromBytes--
+    execution = Packet.GetParameterSegmentFromBytes(convertedBytes, resultedSegment, 2, 3);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("495: Failed to get packet segment from bytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --IsFirstPassengerDiv?-
+    TestStepDone();
+    if(resultedSegment[0] != ChunkType::Div)
+    {
+        TestFailed("503: First chunk of segment is not a div chunk.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertSegmentBack--
+    execution = Packet.GetBytesFromParameterSegment(resultedSegment, 3, convertedBytes, 2);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("512: GetBytes failed to return appropriate execution");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertValueBack--
+    execution = Data.ToData(&shortReceived, convertedBytes, 2);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("521: Incorrect execution returned from Data.ToData");
+        return Execution::Failed;
+    }
+
+    #pragma endregion
+    #pragma region --CompareValues--
+    TestStepDone();
+    if(shortToSend != shortReceived)
+    {
+        TestFailed("530: converted values did not match.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma endregion
+    #pragma region -Int convertion-
+    int intToSend = -255;
+    int intReceived = 0;
+
+    #pragma region --ToByte--
+    execution = Data.ToBytes(intToSend, convertedBytes, 4);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("543: Failed Data.ToBytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --GetParameterSegmentFromBytes---
+    execution = Packet.GetParameterSegmentFromBytes(convertedBytes, resultedSegment, 4, 5);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("552: Failed to get packet segment from bytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --IsFirstPassengerDiv?-
+    TestStepDone();
+    if(resultedSegment[0] != ChunkType::Div)
+    {
+        TestFailed("560: First chunk of segment is not a div chunk.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertSegmentBack--
+    execution = Packet.GetBytesFromParameterSegment(resultedSegment, 5, convertedBytes, 4);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("569: GetBytes failed to return appropriate execution");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertValueBack--
+    execution = Data.ToData(&intReceived, convertedBytes, 4);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("578: Incorrect execution returned from Data.ToData");
+        return Execution::Failed;
+    }
+
+    #pragma endregion
+    #pragma region --CompareValues--
+    TestStepDone();
+    if(intReceived != intToSend)
+    {
+        TestFailed("587: converted values did not match.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma endregion
+    #pragma region -Float convertion-
+    float floatToSend = -20.45f;
+    float floatReceived = 0;
+
+    #pragma region --ToByte--
+    execution = Data.ToBytes(floatToSend, convertedBytes, 4);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("601: Failed Data.ToBytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --GetParameterSegmentFromBytes---
+    execution = Packet.GetParameterSegmentFromBytes(convertedBytes, resultedSegment, 4, 5);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("610: Failed to get packet segment from bytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --IsFirstPassengerDiv?-
+    TestStepDone();
+    if(resultedSegment[0] != ChunkType::Div)
+    {
+        TestFailed("618: First chunk of segment is not a div chunk.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertSegmentBack--
+    execution = Packet.GetBytesFromParameterSegment(resultedSegment, 5, convertedBytes, 4);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("627: GetBytes failed to return appropriate execution");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertValueBack--
+    execution = Data.ToData(&floatReceived, convertedBytes, 4);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("636: Incorrect execution returned from Data.ToData");
+        return Execution::Failed;
+    }
+
+    #pragma endregion
+    #pragma region --CompareValues--
+    TestStepDone();
+    if(floatToSend != floatReceived)
+    {
+        TestFailed("645: converted values did not match.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma endregion
+    #pragma region -Long Long convertion-
+    long long longlongToSend = 98675;
+    long long longlongReceived = 0;
+
+    #pragma region --ToByte--
+    execution = Data.ToBytes(longlongToSend, convertedBytes, 8);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("659: Failed Data.ToBytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --GetParameterSegmentFromBytes---
+    execution = Packet.GetParameterSegmentFromBytes(convertedBytes, resultedSegment, 8, 9);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("668: Failed to get packet segment from bytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --IsFirstPassengerDiv?-
+    TestStepDone();
+    if(resultedSegment[0] != ChunkType::Div)
+    {
+        TestFailed("676: First chunk of segment is not a div chunk.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertSegmentBack--
+    execution = Packet.GetBytesFromParameterSegment(resultedSegment, 9, convertedBytes, 8);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("685: GetBytes failed to return appropriate execution");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertValueBack--
+    execution = Data.ToData(&longlongReceived, convertedBytes, 8);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("694: Incorrect execution returned from Data.ToData");
+        return Execution::Failed;
+    }
+
+    #pragma endregion
+    #pragma region --CompareValues--
+    TestStepDone();
+    if(longlongToSend != longlongReceived)
+    {
+        TestFailed("703: converted values did not match.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma endregion
+    #pragma region -String convertion-
+    std::string stringToSend = "Frank is very sus because he plays among us.";
+    int lengthOfStringToSend = stringToSend.length();
+    std::string stringReceived = "";
+
+    #pragma region --ToByte--
+    execution = Data.ToBytes(stringToSend, convertedBytes, lengthOfStringToSend);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("718: Failed Data.ToBytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --GetParameterSegmentFromBytes---
+    execution = Packet.GetParameterSegmentFromBytes(convertedBytes, resultedSegment, lengthOfStringToSend, lengthOfStringToSend+1);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("727: Failed to get packet segment from bytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --IsFirstPassengerDiv?-
+    TestStepDone();
+    if(resultedSegment[0] != ChunkType::Div)
+    {
+        TestFailed("735: First chunk of segment is not a div chunk.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertSegmentBack--
+    execution = Packet.GetBytesFromParameterSegment(resultedSegment, lengthOfStringToSend+1, convertedBytes, lengthOfStringToSend);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("744: GetBytes failed to return appropriate execution");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --ConvertValueBack--
+    execution = Data.ToData(stringReceived, convertedBytes, lengthOfStringToSend);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("753: Incorrect execution returned from Data.ToData");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma region --CompareValues--
+    TestStepDone();
+    Serial.println(stringToSend.c_str());
+    Serial.println(stringReceived.c_str());
+    if(stringToSend != stringReceived)
+    {
+        TestFailed("762: converted values did not match.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    #pragma endregion  
+    
+    
     TestPassed();
     return Execution::Passed;
 }
@@ -457,6 +782,85 @@ Execution TEST_PACKET_GetParameterSegmentFromBytes()
 Execution TEST_PACKET_AppendSegments()
 {
     TestStart("AppendSegments");
+    Execution execution;
+    
+    unsigned short resultedSegment[10];
+    unsigned short segmentA[10];
+    unsigned short segmentB[10];
+
+    for (int index = 0; index < 200; index++)
+    {
+        unsigned char bytesA[10];
+        unsigned char bytesB[10];
+        int valueToConvert_A = index;
+        int valueToConvert_B = -index;
+        int convertedValue_A = 0;
+        int convertedValue_B = 0;
+
+        #pragma region -ToBytes-
+        execution = Data.ToBytes(convertedValue_A, bytesA, 4);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("803: Data.ToBytes");
+            return Execution::Failed;
+        }
+
+        execution = Data.ToBytes(convertedValue_B, bytesB, 4);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("810: Data.ToBytes");
+            return Execution::Failed;
+        }
+        #pragma endregion
+    
+        #pragma region -ToSegment-
+        execution = Packet.GetParameterSegmentFromBytes(bytesA, segmentA, 4, 5);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("823: Failed to get segment.");
+        }
+
+        execution = Packet.GetParameterSegmentFromBytes(bytesB, segmentB, 4, 5);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("830: Failed to get segment.");
+        }
+        #pragma endregion
+    
+        #pragma region -Append-
+        int expectedSize = 10;
+        execution = Packet.AppendSegments(segmentA, 5, segmentB, 5, resultedSegment, &expectedSize);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("839: Incorrect execution returned from AppendSegments");
+            return Execution::Failed;
+        }
+        #pragma endregion
+    
+        #pragma region -ConvertBackFirstSegment-
+        execution = Packet.GetBytesFromParameterSegment(resultedSegment, 5, bytesA, 4);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("849: Incorrect execution returned from GetBytesFromParameterSegment");
+            return Execution::Failed;
+        }
+
+        int result = 0;
+        execution = Data.ToData(&result, bytesA, 4);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("858: Data.ToData failed to convert.");
+            return Execution::Failed;
+        }
+        #pragma endregion
+    }
 
     TestPassed();
     return Execution::Passed;
@@ -472,7 +876,175 @@ Execution TEST_PACKET_AppendSegments()
 Execution TEST_PACKET_CreateFromSegments()
 {
     TestStart("CreateFromSegments");
+    Execution execution;
+    // - Segments used for the tests - //
+                                     // Start: ID = 0  // Div              // Byte A: 255        // Check: 255
+    unsigned short segmentA[4]       = {0b0000000100000000, 0b0000000000000000, 0b0000000000000000, 0b0000000000000000}; // 1 parameter, 3 empty bytes
+    unsigned short segmentB[4]       = {0b0000000100000000, 0b0000000000000000, 0b0000000100000000, 0b0000000000000000}; // 2 parameters, 2 empty bytes
+    unsigned short segmentC[4]       = {0b0000000100000000, 0b0000000001111111, 0b0000000100000000, 0b0000000001111111}; // 2 parameters, 2 bytes of 127
+    unsigned short badSegmentA[4]    = {0b0000000001111111, 0b0000000001111111, 0b0000000001111111, 0b0000000001111111}; // Array containing no div chunks
+    unsigned short badSegmentB[4]    = {0b0010000100000000, 0b0000000000000000, 0b0000000011111111, 0b0000001111111111}; // Array containing corrupted chunks
+    unsigned short resultedPlane[6];
+    unsigned char resultedID = 0;
+    unsigned char resultedParamCount = 0;
 
+    #pragma region -segmentA-
+    // Create a plane of callsign 20 from segmentA
+    execution = Packet.CreateFromSegments(20, segmentA, 4, resultedPlane, 6);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("894: Failed to create packet.");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetID(resultedPlane, 6, &resultedID);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("904: Failed to get ID of plane.");
+        return Execution::Failed;
+    }
+
+    if(resultedID != 20)
+    {
+        TestFailed("910: GetID's value did not match plane's wanted ID");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetAmountOfParameters(resultedPlane, 6, &resultedParamCount);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("919: Failed to get segment count from plane.");
+        return Execution::Failed;
+    }
+
+    if(resultedParamCount != 1)
+    {
+        TestFailed("925: Incorrect amount of parameters resulted from plane.");
+        return Execution::Failed;
+    }
+
+    execution = Packet.VerifyCheckSum(resultedPlane, 6, 20);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("927: Failed to verify checksum.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+
+    #pragma region -segmentB-
+    // Create a plane of callsign 100 from segmentB
+    execution = Packet.CreateFromSegments(100, segmentB, 4, resultedPlane, 6);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("944: Failed to create packet.");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetID(resultedPlane, 6, &resultedID);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("904: Failed to get ID of plane.");
+        return Execution::Failed;
+    }
+
+    if(resultedID != 100)
+    {
+        TestFailed("958: GetID's value did not match plane's wanted ID");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetAmountOfParameters(resultedPlane, 6, &resultedParamCount);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("966: Failed to get segment count from plane.");
+        return Execution::Failed;
+    }
+
+    if(resultedParamCount != 2)
+    {
+        TestFailed("972: Incorrect amount of parameters resulted from plane.");
+        return Execution::Failed;
+    }
+
+    execution = Packet.VerifyCheckSum(resultedPlane, 6, 100);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("980: Failed to verify checksum.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+
+    #pragma region -segmentC-
+    // Create a plane of callsign 55 from segmentC
+    execution = Packet.CreateFromSegments(55, segmentC, 4, resultedPlane, 6);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("991: Failed to create packet.");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetID(resultedPlane, 6, &resultedID);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("999: Failed to get ID of plane.");
+        return Execution::Failed;
+    }
+
+    if(resultedID != 55)
+    {
+        TestFailed("1005: GetID's value did not match plane's wanted ID");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetAmountOfParameters(resultedPlane, 6, &resultedParamCount);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1013: Failed to get segment count from plane.");
+        return Execution::Failed;
+    }
+
+    if(resultedParamCount != 2)
+    {
+        TestFailed("1019: Incorrect amount of parameters resulted from plane.");
+        return Execution::Failed;
+    }
+
+    execution = Packet.VerifyCheckSum(resultedPlane, 6, 53);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1027: Failed to verify checksum.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    
+    execution = Packet.CreateFromSegments(255, badSegmentA, 4, resultedPlane, 6);
+    TestStepDone();
+    if(execution == Execution::Passed)
+    {
+        TestFailed("1036: Execution::Passed returned from plane with no div chunks");
+        return Execution::Failed;
+    }
+
+    execution = Packet.CreateFromSegments(255, badSegmentB, 4, resultedPlane, 6);
+    TestStepDone();
+    if(execution == Execution::Passed)
+    {
+        TestFailed("1044: Execution::Passed returned from plane with corrupted div chunks");
+        return Execution::Failed;
+    }
+    
     TestPassed();
     return Execution::Passed;
 }
@@ -489,6 +1061,193 @@ Execution TEST_PACKET_GetParametersFromPacket()
 {
     TestStart("GetParametersFromPacket");
 
+    TestPassed();
+    return Execution::Passed;
+}
+
+Execution TEST_PACKET_EntireProcess()
+{
+    TestStart("ULTIMATE SUPER ULTRA MEGA TEST");
+    Execution execution;
+    unsigned short plane[100];
+    unsigned short segmentsToSend[100];
+    unsigned short segmentToSendA[26];
+    unsigned short segmentToSendB[28];
+    unsigned char bytesToSendA[25];
+    unsigned char bytesToSendB[27];
+
+    unsigned short receivedSegmentA[26];
+    unsigned short receivedSegmentB[28];
+    unsigned char receivedBytesA[25];
+    unsigned char receivedBytesB[27];
+    unsigned char functionID = 8;
+    unsigned char extractedFunctionID = 0;
+    int resultedPlaneSize = 100;
+    int extractedParameterCount = 0;
+
+    std::string stringToSendA = "Frank is the imposter! :O";
+    std::string stringToSendB = "God damn this computer slow";
+    std::string receivedStringA;
+    std::string receivedStringB;
+
+    #pragma region --- CONVERT TO BYTES
+    execution = Data.ToBytes(stringToSendA, bytesToSendA, 25);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1093: Failed to convert string A to bytes");
+        return Execution::Failed;
+    }
+
+    execution = Data.ToBytes(stringToSendB, bytesToSendB, 27);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1101: Failed to convert string B to bytes");
+        return Execution::Failed;
+    }
+    #pragma endregion
+
+    #pragma region --- CONVERT TO SEGMENTS
+    execution = Packet.GetParameterSegmentFromBytes(bytesToSendA, segmentToSendA, 25, 27);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1111: Failed to get segment from bytes A");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetParameterSegmentFromBytes(bytesToSendB, segmentToSendB, 27, 28);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1119: Failed to get segment from bytes B");
+        return Execution::Failed;
+    }  
+
+    #pragma endregion
+
+    #pragma region --- APPEND SEGMENTS
+    execution = Packet.AppendSegments(segmentToSendA, 26, segmentToSendB, 28, segmentsToSend, &resultedPlaneSize);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1130: Failed to append segment A to B");
+        return Execution::Failed;
+    }
+    #pragma endregion
+
+    #pragma region --- CREATE PLANE
+    execution = Packet.CreateFromSegments(functionID, segmentsToSend, 54, plane, 100);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1140: Failed to create packet from segmentA and segmentB");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    
+    #pragma region --- Verify ID
+    execution = Packet.GetID(plane, 100, &extractedFunctionID);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1166: GetID failed its execution.");
+    }
+    #pragma endregion
+    
+    #pragma region --- PACKET VERIFICATIONS
+
+    execution = Packet.FullyAnalyze(plane, &resultedPlaneSize, &extractedParameterCount, &extractedFunctionID);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1176: FullyAnalyzeFailed");
+        return Execution::Failed;
+    }
+   
+    if(extractedFunctionID != functionID)
+    {
+        TestFailed("1176: ID did not match");
+        return Execution::Failed;
+    }
+
+    if(extractedParameterCount != 2)
+    {
+        TestFailed("1182: Packet did not have 2 parameters");
+        Serial.println(extractedParameterCount);
+        return Execution::Failed;
+    }
+
+    if(resultedPlaneSize != 56)
+    {
+        TestFailed("1188: plane is not the same size (56)");
+        Serial.println(extractedParameterCount);
+        return Execution::Failed;
+    }
+   
+    #pragma endregion
+    
+    #pragma region --- EXTRACTING PARAMETERS
+    execution = Packet.GetBytes(plane, resultedPlaneSize, 1, receivedBytesA, 25);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        Serial.println(execution);
+        TestFailed("1199: GetBytes failed to execute");
+        return Execution::Failed;
+    }
+
+    execution = Packet.GetBytes(plane, resultedPlaneSize, 2, receivedBytesB, 27);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1207: GetBytes failed to execute");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    
+    #pragma region --- CONVERTING PARAMETERS
+    execution = Data.ToData(receivedStringA, receivedBytesA, 25);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1215: Failed to convert bytes A to string");
+        return Execution::Passed;
+    }
+
+    execution = Data.ToData(receivedStringB, receivedBytesB, 27);
+    TestStepDone();
+    if(execution != Execution::Passed)
+    {
+        TestFailed("1223: Failed to convert bytes B to string");
+        return Execution::Passed;
+    }
+
+    #pragma endregion
+    
+    #pragma region --- COMPARAISON
+    if(receivedStringA != stringToSendA)
+    {
+        TestFailed("1232: Received string does not equal to sent string.");
+        Serial.println(stringToSendA.c_str());
+        Serial.println(receivedStringA.c_str());
+        return Execution::Failed;
+    }
+
+    if(receivedStringB != stringToSendB)
+    {
+        Serial.println(stringToSendB.c_str());
+        Serial.println(receivedStringB.c_str());
+        TestFailed("1238: Received string does not equal to sent string.");
+        return Execution::Failed;
+    }
+    #pragma endregion
+    
+    Serial.println(stringToSendA.c_str());
+    Serial.println(receivedStringA.c_str());
+    Serial.println(stringToSendB.c_str());
+    Serial.println(receivedStringB.c_str());
     TestPassed();
     return Execution::Passed;
 }
@@ -542,6 +1301,11 @@ Execution cPacket_LaunchTests()
     }
 
     if(TEST_PACKET_GetParametersFromPacket() != Execution::Passed){
+        UnitTestFailed();
+        return Execution::Failed;
+    }
+
+    if(TEST_PACKET_EntireProcess() != Execution::Passed){
         UnitTestFailed();
         return Execution::Failed;
     }
