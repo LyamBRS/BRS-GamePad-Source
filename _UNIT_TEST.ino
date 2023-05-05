@@ -9,6 +9,7 @@
  * 
  */
 
+
 /*  ############    ############     ##########
     ############    ############     ##########
               ##              ##   ## 
@@ -82,6 +83,185 @@ Execution TestFailed(const char* reasonForFailing)
     Serial.println(reasonForFailing);
 
     Serial.println("|\t|\tResult:     [FAIL]");
+
+    return Execution::Passed;
+}
+
+
+Execution PrintChunk(unsigned short chunkToPrint)
+{
+    int extractedType = 0;
+    unsigned char extractedByte = 0;
+    Execution execution;
+    Serial.print(" Chunk: ");
+    Serial.print("\t");
+
+    execution = Chunk.ToType(chunkToPrint, &extractedType);
+    if(execution != Execution::Passed)
+    {
+        Serial.print("FAIL");
+        Serial.println("\t");
+        Serial.println("");
+        return Execution::Failed;            
+    }
+
+    switch(extractedType)
+    {
+        case(ChunkType::Byte):
+            Serial.print("BYTE \t");
+            break;
+
+        case(ChunkType::Start):
+            Serial.print("START\t");
+            break;
+
+        case(ChunkType::Div):
+            Serial.print("DIV\t  ");
+            break;
+
+        case(ChunkType::Check):
+            Serial.print("CHECK\t");
+            break;
+    }
+
+    execution = Chunk.ToByte(chunkToPrint, &extractedByte);
+    if(execution != Execution::Passed)
+    {
+        Serial.print("FAIL");
+        Serial.println("\t");
+        Serial.println("");
+        return Execution::Failed;            
+    }
+
+    Serial.print(std::to_string(extractedByte).c_str());
+    Serial.println("");
+    return Execution::Passed;
+}
+
+/**
+ * @brief This function will print
+ * out a segment or series of
+ * chunks until an error is received.
+ * 
+ * @param packetToPrint 
+ * array of chunks to print.
+ * @return Execution 
+ */
+Execution PrintOutPacket(unsigned short* packetToPrint, int max)
+{
+    Execution execution;
+    for(int index = 0; index<max; index++)
+    {
+        unsigned short chunk = packetToPrint[index];
+
+        Serial.print("index: ");
+        Serial.print(index);
+        execution = PrintChunk(chunk);
+        if(execution != Execution::Passed)
+        {
+            return Execution::Passed;
+        }
+    }
+    return Execution::Passed;
+}
+
+/**
+ * @brief This function will print
+ * out a segment or series of
+ * chunks until an error is received.
+ * 
+ * @param packetToPrint 
+ * array of chunks to print.
+ * @return Execution 
+ */
+Execution PrintOutPacket(unsigned short* packetToPrint)
+{
+    Execution execution;
+    for(int index = 0; index<MAX_PLANE_PASSENGER_CAPACITY; index++)
+    {
+        unsigned short chunk = packetToPrint[index];
+
+        Serial.print("index: ");
+        Serial.print(index);
+        execution = PrintChunk(chunk);
+        if(execution != Execution::Passed)
+        {
+            return Execution::Passed;
+        }
+    }
+    return Execution::Passed;
+}
+
+/**
+ * @brief Normalizes the printing of
+ * expected values turned into strings
+ * versus received values for printing
+ * out failed tests.
+ * 
+ * @param expected 
+ * What were we expected to get from that test?
+ * @param gotten 
+ * What did we end up getting instead?
+ * @return Execution 
+ */
+Execution TestExpectedVSGotten(const char* expected, const char* gotten)
+{
+    Serial.print("|\t|\tExpected:   ");
+    Serial.println(expected);
+
+    Serial.print("|\t|\tReceived:   ");
+    Serial.println(gotten);
+
+    return Execution::Passed;
+}
+
+/**
+ * @brief Function that displays whats the
+ * execution that was resulted from
+ * a function call. This function is
+ * indented like TestFails.
+ * 
+ * @param execution 
+ * @return Execution 
+ */
+Execution TestExecution(int execution)
+{
+    Serial.print("|\t|\tExecution:  ");
+
+    switch(execution)
+    {
+        case(Execution::Bypassed):
+            Serial.println("Bypassed");
+            break;
+
+        case(Execution::Crashed):
+            Serial.println("Crashed");
+            break;
+
+        case(Execution::Failed):
+            Serial.println("Failed");
+            break;
+
+        case(Execution::Incompatibility):
+            Serial.println("Incompatibility");
+            break;
+
+        case(Execution::NoConnection):
+            Serial.println("NoConnection");
+            break;
+
+        case(Execution::Passed):
+            Serial.println("Passed");
+            break;
+
+        case(Execution::Unecessary):
+            Serial.println("Unecessary");
+            break;
+
+        default:
+            Serial.println("[UNKNOWN]");
+            break;       
+    }
 
     return Execution::Passed;
 }

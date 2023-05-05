@@ -69,6 +69,55 @@ Execution TestStart(const char* nameOfTest);
 Execution TestFailed(const char* reasonForFailing);
 
 /**
+ * @brief Function that displays whats the
+ * execution that was resulted from
+ * a function call. This function is
+ * indented like TestFails.
+ * 
+ * @param execution 
+ * @return Execution 
+ */
+Execution TestExecution(int execution);
+
+
+Execution PrintChunk(unsigned short chunkToPrint);
+/**
+ * @brief This function will print
+ * out a segment or series of
+ * chunks until an error is received.
+ * 
+ * @param packetToPrint 
+ * array of chunks to print.
+ * @return Execution 
+ */
+Execution PrintOutPacket(unsigned short* packetToPrint);
+
+/**
+ * @brief This function will print
+ * out a segment or series of
+ * chunks until an error is received.
+ * 
+ * @param packetToPrint 
+ * array of chunks to print.
+ * @return Execution 
+ */
+Execution PrintOutPacket(unsigned short* packetToPrint, int max);
+
+/**
+ * @brief Normalizes the printing of
+ * expected values turned into strings
+ * versus received values for printing
+ * out failed tests.
+ * 
+ * @param expected 
+ * What were we expected to get from that test?
+ * @param gotten 
+ * What did we end up getting instead?
+ * @return Execution 
+ */
+Execution TestExpectedVSGotten(const char* expected, const char* gotten);
+
+/**
  * @brief Function to call when all the steps
  * of a test within an unit test passes.
  * This function will mark the end of a test,

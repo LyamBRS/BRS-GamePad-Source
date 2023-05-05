@@ -28,6 +28,10 @@
 //=============================================//
 #include "Globals.h"
 
+#define SIZE_OF_DEPARTURE_TAXIWAY 20;
+#define SIZE_OF_ARRIVAL_PLANE 100;
+
+
 /**
  * @brief The terminal handler class allows
  * your device to handler its BFIO terminal.
@@ -43,15 +47,13 @@ class cTerminal
          * Used in the final comparaison for packet
          * integrity.
          */
-        unsigned char _currentCheckSum = 0;
-
-        unsigned short _ArrivalBuffer[100];
+        unsigned short _ArrivalIDBuffer[SIZE_OF_ARRIVAL_PLANE];
 
         /**
          * @brief list of the function's ID
          * that needs to be sent in order of newest to most urgent.
          */
-        unsigned char _DepartureIDBuffer[20];
+        unsigned char _DepartureIDBuffer[SIZE_OF_DEPARTURE_TAXIWAY];
 
         /**
          * @brief The current mode.
@@ -59,6 +61,24 @@ class cTerminal
          * 1: Rejecting incoming packets (Will not save the chunks other than start and check chunk.)
          */
         unsigned char _currentMode = 0;
+
+        /**
+         * @brief 
+         * Checksum currently being calculated
+         * as the plane is landing on the arrival
+         * runway.
+         */
+        _calculatedChecksum = 0;
+
+        /**
+         * @brief This private member indicates
+         * exactly how many planes are on the
+         * departing taxiway. Each time a plane is queued
+         * through the PutPlaneOnTaxiway method this
+         * increases until the max of the buffer is met.
+         * GetNextDepartingPlaneID will decrease it.
+         */
+        int _amountOfPlanesTaxiing = 0;
 
     public:
         /// @brief set to true if the class is constructed.
@@ -108,21 +128,19 @@ class cTerminal
         Execution _HandlePlaneDeparture(unsigned short* departingChunk);
 
         /**
-         * @brief Stores the last packet stored in
-         * the buffer into an unsigned short packet
-         * buffer array. Make sure that your buffer is
-         * large enough to store the entire packet.
-         * 
+         * @brief This function returns a which plane ID
+         * is next to the runway and is awaiting for
+         * takeoff.
          * @attention
-         * This will clear the buffer of this packet.
-         * 
-         * @param packetBuffer
-         * Array of chunks where the packet will be stored
-         * @param packetBufferSize 
-         * Size of the chunk array
+         * this function will remove the plane from the
+         * taxiway. If you do not handle the plane, it's
+         * like it'll go to the backroom and the gate will
+         * forever be waiting for its return.
+         * @param idOfNextPlane 
+         * The Id of the function to get the departing plane from.
          * @return Execution 
          */
-        Execution GetLastArrival(unsigned short* packetBuffer, int packetBufferSize);
+        Execution cTerminal::GetNextDepartingPlaneID(unsigned char* idOfNextPlane);
 
         /**
          * @brief This method queues a packet to be sent eventually.

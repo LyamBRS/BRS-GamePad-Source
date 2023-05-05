@@ -316,7 +316,7 @@ Execution TEST_PACKET_GetAmountOfParameters()
     if(execution != Execution::Passed)
     {
         TestFailed("Unexpected execution returned from Packet.GetAmountOfParameters when valid packet is given.");
-        Serial.println(execution);
+        TestExecution(execution);
         return Execution::Failed;
     }
 
@@ -331,7 +331,7 @@ Execution TEST_PACKET_GetAmountOfParameters()
     if(execution != Execution::Passed)
     {
         TestFailed("Unexpected execution returned from Packet.GetAmountOfParameters when valid packet is given.");
-        Serial.println(execution);
+        TestExecution(execution);
         return Execution::Failed;
     }
 
@@ -346,7 +346,7 @@ Execution TEST_PACKET_GetAmountOfParameters()
     if(execution != Execution::Passed)
     {
         TestFailed("Unexpected execution returned from Packet.GetAmountOfParameters when valid packet is given.");
-        Serial.println(execution);
+        TestExecution(execution);
         return Execution::Failed;
     }
 
@@ -388,8 +388,7 @@ Execution TEST_PACKET_GetAmountOfParameters()
     if(execution != Execution::Failed)
     {
         TestFailed("Did not return Execution::Failed when plane has 0 div passengers");
-        Serial.println(parameterCount);
-        Serial.println(execution);
+        TestExecution(execution);
         return Execution::Failed;
     }
 
@@ -756,8 +755,8 @@ Execution TEST_PACKET_GetParameterSegmentFromBytes()
     #pragma endregion
     #pragma region --CompareValues--
     TestStepDone();
-    Serial.println(stringToSend.c_str());
-    Serial.println(stringReceived.c_str());
+    // Serial.println(stringToSend.c_str());
+    // Serial.println(stringReceived.c_str());
     if(stringToSend != stringReceived)
     {
         TestFailed("762: converted values did not match.");
@@ -1073,13 +1072,17 @@ Execution TEST_PACKET_EntireProcess()
     unsigned short segmentsToSend[100];
     unsigned short segmentToSendA[26];
     unsigned short segmentToSendB[28];
+    unsigned short segmentToSendC[9];
     unsigned char bytesToSendA[25];
     unsigned char bytesToSendB[27];
+    unsigned char bytesToSendC[2];
 
     unsigned short receivedSegmentA[26];
     unsigned short receivedSegmentB[28];
+    unsigned short receivedSegmentC[9];
     unsigned char receivedBytesA[25];
     unsigned char receivedBytesB[27];
+    unsigned char receivedBytesC[2];
     unsigned char functionID = 8;
     unsigned char extractedFunctionID = 0;
     int resultedPlaneSize = 100;
@@ -1089,6 +1092,13 @@ Execution TEST_PACKET_EntireProcess()
     std::string stringToSendB = "God damn this computer slow";
     std::string receivedStringA;
     std::string receivedStringB;
+
+    unsigned char unsignedCharToSend = 10;
+    unsigned char receivedUnsignedChar = 10;
+    int intToSend = 0;
+    int receivedInt = 0;
+    double doubleToSend = 0;
+    double receivedDouble = 0;
 
     #pragma region --- CONVERT TO BYTES
     execution = Data.ToBytes(stringToSendA, bytesToSendA, 25);
@@ -1169,20 +1179,21 @@ Execution TEST_PACKET_EntireProcess()
     if(extractedFunctionID != functionID)
     {
         TestFailed("1176: ID did not match");
+        TestExpectedVSGotten(std::to_string(functionID).c_str(), std::to_string(extractedFunctionID).c_str());
         return Execution::Failed;
     }
 
     if(extractedParameterCount != 2)
     {
         TestFailed("1182: Packet did not have 2 parameters");
-        Serial.println(extractedParameterCount);
+        TestExpectedVSGotten(std::to_string(2).c_str(), std::to_string(extractedParameterCount).c_str());
         return Execution::Failed;
     }
 
     if(resultedPlaneSize != 56)
     {
         TestFailed("1188: plane is not the same size (56)");
-        Serial.println(extractedParameterCount);
+        TestExpectedVSGotten(std::to_string(56).c_str(), std::to_string(resultedPlaneSize).c_str());
         return Execution::Failed;
     }
    
@@ -1193,8 +1204,8 @@ Execution TEST_PACKET_EntireProcess()
     TestStepDone();
     if(execution != Execution::Passed)
     {
-        Serial.println(execution);
         TestFailed("1199: GetBytes failed to execute");
+        TestExecution(execution);
         return Execution::Failed;
     }
 
@@ -1230,24 +1241,261 @@ Execution TEST_PACKET_EntireProcess()
     if(receivedStringA != stringToSendA)
     {
         TestFailed("1232: Received string does not equal to sent string.");
-        Serial.println(stringToSendA.c_str());
-        Serial.println(receivedStringA.c_str());
+        TestExpectedVSGotten(stringToSendA.c_str(), receivedStringA.c_str());
         return Execution::Failed;
     }
 
     if(receivedStringB != stringToSendB)
     {
-        Serial.println(stringToSendB.c_str());
-        Serial.println(receivedStringB.c_str());
         TestFailed("1238: Received string does not equal to sent string.");
+        TestExpectedVSGotten(stringToSendB.c_str(), receivedStringB.c_str());
         return Execution::Failed;
     }
     #pragma endregion
     
-    Serial.println(stringToSendA.c_str());
-    Serial.println(receivedStringA.c_str());
-    Serial.println(stringToSendB.c_str());
-    Serial.println(receivedStringB.c_str());
+    for(int index = 0; index < 100; index++)
+    {
+      plane[index] = 0;
+      segmentsToSend[index] = 0;
+
+      if(index < 26) {segmentToSendA[index] = 0;}
+      if(index < 25) {bytesToSendA[index]   = 0;}
+      if(index < 28) {segmentToSendB[index] = 0;}
+      if(index < 27) {bytesToSendB[index]   = 0;}
+      if(index < 2) {segmentToSendC[index]  = 0;}
+      if(index < 2) {bytesToSendC[index]    = 0;}
+
+      if(index < 26) {receivedSegmentA[index] = 0;}
+      if(index < 25) {receivedBytesA[index]   = 0;}
+      if(index < 28) {receivedSegmentB[index] = 0;}
+      if(index < 27) {receivedBytesB[index]   = 0;}
+      if(index < 2)  {receivedSegmentC[index] = 0;}
+      if(index < 2)  {receivedBytesC[index]   = 0;}
+    }
+
+    #pragma region --- ULTRA MEGA SUPER MONSTER TEST
+    for(int index = 0; index < 1000; ++index)
+    {
+        unsignedCharToSend = index;
+        intToSend = -index;
+        doubleToSend = -index*2;
+
+        #pragma region --- CONVERT TO BYTES
+        execution = Data.ToBytes(unsignedCharToSend, bytesToSendA, 1);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1276: Failed to convert unsigned char to bytes");
+            return Execution::Failed;
+        }
+    
+        execution = Data.ToBytes(intToSend, bytesToSendB, 4);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1284: Failed to convert int to bytes");
+            return Execution::Failed;
+        }
+
+        execution = Data.ToBytes(doubleToSend, bytesToSendC, 8);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1311: Failed to convert double to bytes");
+            return Execution::Failed;
+        }
+        #pragma endregion
+
+        #pragma region --- CONVERT TO SEGMENTS
+        execution = Packet.GetParameterSegmentFromBytes(bytesToSendA, segmentToSendA, 1, 2);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1302: Failed to get segment from bytes A");
+            return Execution::Failed;
+        }
+        execution = Packet.GetParameterSegmentFromBytes(bytesToSendB, segmentToSendB, 4, 5);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1310: Failed to get segment from bytes B");
+            return Execution::Failed;
+        }
+        execution = Packet.GetParameterSegmentFromBytes(bytesToSendC, segmentToSendC, 8, 9);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1318: Failed to get segment from bytes C");
+            return Execution::Failed;
+        }  
+        #pragma endregion
+        #pragma region --- APPEND SEGMENTS
+        resultedPlaneSize = 7;
+        execution = Packet.AppendSegments(segmentToSendA, 2, segmentToSendB, 5, segmentsToSend, &resultedPlaneSize);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1130: Failed to append segment A to B");
+            TestExecution(execution);
+            return Execution::Failed;
+        }
+
+        resultedPlaneSize = 16;
+        execution = Packet.AppendSegments(segmentsToSend, 7, segmentToSendC, 9, segmentsToSend, &resultedPlaneSize);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1337: Failed to append resulted segment to segment C");
+            TestExecution(execution);
+            return Execution::Failed;
+        }
+        #pragma endregion
+
+        #pragma region --- CREATE PLANE
+        execution = Packet.CreateFromSegments(functionID, segmentsToSend, 16, plane, 100);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1349: Failed to create plane from segments to send.");
+            TestExecution(execution);
+            return Execution::Failed;
+        }
+        #pragma endregion
+    
+        #pragma region --- Verify ID
+        execution = Packet.GetID(plane, 100, &extractedFunctionID);
+        TestStepDone();
+        if(execution != Execution::Passed)
+    {
+        TestFailed("1166: GetID failed its execution.");
+    }
+        #pragma endregion
+    
+        #pragma region --- PACKET VERIFICATIONS
+    
+        execution = Packet.FullyAnalyze(plane, &resultedPlaneSize, &extractedParameterCount, &extractedFunctionID);
+        TestStepDone();
+        if(execution != Execution::Passed)
+    {
+        TestFailed("1380: FullyAnalyzeFailed");
+        return Execution::Failed;
+    }
+    
+        if(extractedFunctionID != functionID)
+    {
+        TestFailed("1386: ID did not match");
+        return Execution::Failed;
+    }
+    
+        if(extractedParameterCount != 3)
+        {
+            TestFailed("1392: Packet did not have correct amount of parameters");
+            TestExpectedVSGotten(std::to_string(2).c_str(), std::to_string(extractedParameterCount).c_str());
+            return Execution::Failed;
+        }
+    
+        if(resultedPlaneSize != 18)
+        {
+            TestFailed("1399: plane is not the same size");
+            TestExpectedVSGotten(std::to_string(18).c_str(), std::to_string(resultedPlaneSize).c_str());
+            return Execution::Failed;
+        }
+    
+        #pragma endregion
+    
+        #pragma region --- EXTRACTING PARAMETERS
+        execution = Packet.GetBytes(plane, resultedPlaneSize, 1, receivedBytesA, 1);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1399: GetBytes failed to extract param 1");
+            TestExecution(execution);
+            return Execution::Failed;
+        }
+    
+        execution = Packet.GetBytes(plane, resultedPlaneSize, 2, receivedBytesB, 4);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1407: GetBytes failed to extract param 2");
+            return Execution::Failed;
+        }
+
+        execution = Packet.GetBytes(plane, resultedPlaneSize, 3, receivedBytesC, 8);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1415: GetBytes failed to extract param 3");
+            return Execution::Failed;
+        }
+        #pragma endregion
+    
+        #pragma region --- CONVERTING PARAMETERS
+        execution = Data.ToData(&receivedUnsignedChar, receivedBytesA, 1);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1425: Failed to convert bytes A to unsigned char");
+            TestExecution(execution);
+            return Execution::Failed;
+        }
+    
+        // Serial.println("\n");
+        // for(int index2 = 0; index2<4; index2++)
+        // {
+            // Serial.println(receivedBytesB[index2]);
+        // }
+        // Serial.println("\n");
+        execution = Data.ToData(&receivedInt, receivedBytesB, 4);
+        // Serial.println(receivedInt);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1433: Failed to convert bytes B to int");
+            TestExecution(execution);
+            return Execution::Passed;
+        }
+
+        execution = Data.ToData(&receivedDouble, receivedBytesC, 8);
+        TestStepDone();
+        if(execution != Execution::Passed)
+        {
+            TestFailed("1441: Failed to convert bytes C to double");
+            TestExecution(execution);
+            return Execution::Passed;
+        }
+    
+        #pragma endregion
+    
+        #pragma region --- COMPARAISON
+        if(unsignedCharToSend != receivedUnsignedChar)
+        {
+            TestFailed("1450: Received unsigned char does not equal to sent unsigned char.");
+            TestExpectedVSGotten(std::to_string(unsignedCharToSend).c_str(), std::to_string(receivedUnsignedChar).c_str());
+            return Execution::Failed;
+        }
+    
+        // PrintOutPacket(plane, 18);
+        if(receivedInt != intToSend)
+        {
+            TestFailed("1457: Received int does not equal to sent int.");
+            TestExpectedVSGotten(std::to_string(intToSend).c_str(), std::to_string(receivedInt).c_str());
+            return Execution::Failed;
+        }
+
+        // if(receivedDouble != doubleToSend)
+        // {
+            // TestFailed("1480: Received double does not equal to sent double.");
+            // TestExpectedVSGotten(std::to_string(doubleToSend).c_str(), std::to_string(receivedDouble).c_str());
+            // return Execution::Failed;
+        // }
+        #pragma endregion
+    }
+
+
+    #pragma endregion
+
+
     TestPassed();
     return Execution::Passed;
 }

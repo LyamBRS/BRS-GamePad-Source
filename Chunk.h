@@ -111,6 +111,17 @@ class cChunk
          * @return Execution 
          */
         Execution ToChunk(unsigned char byteToConvert, unsigned short* resultedChunk, int typeToApply);
+
+        /**
+         * @brief This annoying ass function is the result of the UART protocol
+         * working only with bytes. This means that the 10 bits to send actually
+         * need to be a whole ass 16 bits.
+         * 
+         * @param resulted2bytes 
+         * 0: First to send, 1: second to send.
+         * @return Execution 
+         */
+        Execution ToUART(unsigned short chunkToSend, unsigned char* resulted2bytes);
 };
 #pragma endregion
 

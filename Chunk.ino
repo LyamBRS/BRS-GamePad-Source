@@ -56,6 +56,20 @@ Execution cChunk::ToType(unsigned short chunkToConvert, int* resultedType)
 }
 
 /**
+ * @brief This annoying ass function is the result of the UART protocol
+ * working only with bytes. This means that the 10 bits to send actually
+ * need to be a whole ass 16 bits.
+ * 
+ * @param resulted2bytes 
+ * 0: First to send, 1: second to send.
+ * @return Execution 
+ */
+Execution cChunk::ToUART(unsigned short chunkToSend, unsigned char* resulted2bytes)
+{
+    return (Data.ToBytes(chunkToSend, resulted2bytes, 2));
+}
+
+/**
  * @brief Function that converts a chunk
  * to an unsigned char single byte.
  * This function is used to extract the

@@ -257,11 +257,22 @@ Execution TEST_cData_int()
     
         if(toConvert != converted)
         {
-            TestFailed("Value did not match after conversion");
+            TestFailed("260: Value did not match after conversion");
+            TestExpectedVSGotten(std::to_string(toConvert).c_str(), std::to_string(converted).c_str());
             return Execution::Failed;
         }
     }
     #pragma endregion
+
+    Data.ToBytes(-1, Array, sizeOfArray);
+    Data.ToData(&converted, Array, sizeOfArray);
+    TestStepDone();
+    if(converted != -1)
+    {
+            TestFailed("272: Value did not match after conversion");
+            TestExpectedVSGotten(std::to_string(-1).c_str(), std::to_string(converted).c_str());
+            return Execution::Failed;
+    }
 
     #pragma region ToType
     Execution result = Data.ToType(toConvert, &typeResult);

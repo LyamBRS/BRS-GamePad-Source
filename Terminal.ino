@@ -57,7 +57,7 @@ Execution cTerminal::_HandlePlaneArrival(unsigned short newChunkArrival)
     execution = Chunk.ToType(newChunkArrival, &chunkType);
     if(execution != Execution::Passed)
     {
-        Device.SetErrorMessage(FATAL_BFIO_ERROR_CHUNK_HANDLING);
+        Device.SetErrorMessage("60:Terminal -> Chunk.ToType ");
         Device.SetStatus(Status::CommunicationError);
         return execution;
     }
@@ -66,7 +66,7 @@ Execution cTerminal::_HandlePlaneArrival(unsigned short newChunkArrival)
     execution = Chunk.ToByte(newChunkArrival, &receivedByte);
     if(execution != Execution::Passed)
     {
-        Device.SetErrorMessage(FATAL_BFIO_ERROR_CHUNK_HANDLING);
+        Device.SetErrorMessage("69:Terminal -> Chunk.ToByte ");
         Device.SetStatus(Status::CommunicationError);
         return execution;    
     }
@@ -79,7 +79,7 @@ Execution cTerminal::_HandlePlaneArrival(unsigned short newChunkArrival)
         if(chunkType ==  ChunkType::Start)
         {
             // The packet that we were receiving suddently got cut off by another.
-            Device.SetErrorMessage(FATAL_BFIO_ERROR_CHUNK_HANDLING);
+            Device.SetErrorMessage("82:Terminal -> Multiple Starts");
             Device.SetStatus(Status::CommunicationError);
             return Execution::Failed;
         }
@@ -89,7 +89,17 @@ Execution cTerminal::_HandlePlaneArrival(unsigned short newChunkArrival)
         {
             receivingPacket = false;
 
-            // - CALCULATE CHECKSUM - //
+            // - Checksum not matching - //
+            if(_calculatedChecksum != receivedByte)
+            {
+                Device.SetErrorMessage("95:Terminal -> Check Mismatch.");
+                Device.SetStatus(Status::CommunicationError);
+                return Execution::Failed;
+            }
+            else
+            {
+                // - PLANE IS OK FOR ARRIVAL - //
+            }
         }
 
         // - STORE CHUNK - //
@@ -99,7 +109,7 @@ Execution cTerminal::_HandlePlaneArrival(unsigned short newChunkArrival)
         if(chunkType == ChunkType::Start)
         {
             #pragma region -Start of Arrival handling-
-            _currentCheckSum = 0;
+            _calculatedChecksum = 0;
             #pragma endregion
         }
         else
@@ -147,32 +157,96 @@ Execution cTerminal::GetLastArrival(unsigned short* packetBuffer, int packetBuff
 }
 
 /**
- * @brief This method queues a plane to be sent eventually.
+ * @brief This method attempts to queue a plane to 
+ * be sent eventually on the taxiway.
  * 
- * @attention this function will verify your plane.
+ * @attention this function will not verify your plane.
+ * nor if the ID is available in the buffer list.
  * 
- * @param packetBuffer 
- * array of chunk which corresponds to the packet to queue
- * @param packetBufferSize 
- * Amount of chunks in the array including the start and check chunk.
- * @return Execution 
+ * @param planeID 
+ * The function ID corresponding to the plane request
+ * that will try to enter the taxiway.
+ * @return Execution::Unecessary = Plane already taxiing | Execution::Passed = Plane is now taxiing | Execution::Failed terminal status does not allow departures | Execution::Bypassed = Departure buffer is overflowing.
  */
 Execution cTerminal::PutPlaneOnTaxiway(unsigned char planeID)
 {
+    if(departureStatus == TerminalStatus::DepartureAvailable)
+    {
+        for(int index = 0; index < SIZE_OF_DEPARTURE_TAXIWAY; index++)
+        {
+            unsigned char planeInTaxiway = _DepartureIDBuffer[index];
+    
+            if(planeID == planeInTaxiway)
+            {
+                // Plane is already taxiing.
+                return Execution::Unecessary;
+            }
+
+            if(index == _amountOfPlanesTaxiing)
+            {
+                _amountOfPlanesTaxiing++;
+                _DepartureIDBuffer[index] = planeID;
+                return Execution::Passed;
+
+                // Plane is now taxiing.
+            }
+        }
+        departureStatus = TerminalStatus::NotEnoughSpace;
+        return Execution::Bypassed;
+    }
+    else
+    {
+        if(departureStatus == TerminalStatus::NotEnoughSpace)
+        {
+            return Execution::Bypassed;
+        }
+
+        return Execution::Failed;
+    }
+    // Plane can taxi.
+
     return Execution::Failed;
 }
 
 /**
- * @brief Puts the BFIO function ID of the
- * packet stored in the buffer in a pointer.
- * This is used to identify which function
- * or answer it is identified to.
- * @param idOfLastPacket 
- * Id of the packet (0-255)
- * @return Execution 
+ * @brief This function returns a which plane ID
+ * is next to the runway and is awaiting for
+ * takeoff.
+ * @attention
+ * this function will remove the plane from the
+ * taxiway. If you do not handle the plane, it's
+ * like it'll go to the backroom and the gate will
+ * forever be waiting for its return.
+ * @param idOfNextPlane 
+ * The Id of the function to get the departing plane from.
+ * @return Execution::Unecessary = No plane departing |
  */
-Execution cTerminal::GetLastPlaneID(unsigned char* idOfLastPacket)
+Execution cTerminal::GetNextDepartingPlaneID(unsigned char* idOfNextPlane)
 {
+    if(_amountOfPlanesTaxiing > 0)
+    {
+        // Copy the ID of the plane thats next to the runway.
+        unsigned char departingPlaneID = _DepartureIDBuffer[_amountOfPlanesTaxiing-1];
+
+        // All the planes go forward just like traffic do
+        for(int index = 0; index < SIZE_OF_DEPARTURE_TAXIWAY-1; index++)
+        {
+            _DepartureIDBuffer[index] = _DepartureIDBuffer[index+1];
+        }
+
+        // If the terminal previously had not enough space, its no longer the case
+        if(departureStatus == TerminalStatus::NotEnoughSpace)
+        {
+           departureStatus == TerminalStatus::DepartureAvailable; 
+        }
+
+        // There is 1 less plane that is taxiing.
+        _amountOfPlanesTaxiing--;
+    }
+    else
+    {
+        return Execution::Unecessary;
+    }
     return Execution::Failed;
 }
 
@@ -184,7 +258,11 @@ Execution cTerminal::GetLastPlaneID(unsigned char* idOfLastPacket)
  */
 Execution cTerminal::Reset()
 {
-    return Execution::Failed;
+    departureStatus = TerminalStatus::Initialised;
+    arrivalStatus = TerminalStatus::Initialised;
+    _amountOfPlanesTaxiing = 0;
+
+    return Execution::Passed;
 }
 
 /**

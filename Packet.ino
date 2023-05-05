@@ -288,14 +288,26 @@ Execution cPacket::AppendSegments(unsigned short* FirstSegment, int sizeOfFirstS
         return Execution::Failed;
     }
 
+    // Serial.println("\n\n\n");
+    // Serial.println("[APPENDING]");
+    // Serial.println("\n");
+    // Serial.println("[FIRST]");
     for(int i=0; i<sizeOfFirstSegment; i++)
     {
         appendResult[i] = FirstSegment[i];
+        // Serial.print("i: ");
+        // Serial.print(i);
+        // PrintChunk(FirstSegment[i]);
     }
 
-    for(int i=sizeOfFirstSegment; i<(*sizeOfResult); i++)
+    // Serial.println("\n");
+    // Serial.println("[SECOND]");
+    for(int i=0; i<sizeOfSecondSegment; i++)
     {
-        appendResult[i] = secondSegment[i-sizeOfFirstSegment];
+        appendResult[i+sizeOfFirstSegment] = secondSegment[i];
+        // Serial.print("i: ");
+        // Serial.print(i);
+        // PrintChunk(appendResult[i+sizeOfFirstSegment]);
     }
 
     // Check last bytes just in case
@@ -304,6 +316,15 @@ Execution cPacket::AppendSegments(unsigned short* FirstSegment, int sizeOfFirstS
         Device.SetErrorMessage("304:Packet: Mismatch found    ");
         return Execution::Failed;
     }
+
+    // Check first byte just in case
+    if(appendResult[0] != FirstSegment[0])
+    {
+        Device.SetErrorMessage("311:Packet: Mismatch found    ");
+        return Execution::Failed;
+    }
+    // Serial.println("RESULT");
+    // PrintOutPacket(appendResult, *sizeOfResult);
     return Execution::Passed;
 }
 /**

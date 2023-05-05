@@ -40,6 +40,7 @@
 #include "Packet.h"
 #include "Terminal.h"
 #include "Gates.h"
+#include "Runway.h"
 #include "Joystick.h"
 #include "_UNIT_TEST_Rgb.h"
 #include "_UNIT_TEST_Data.h"
@@ -153,6 +154,18 @@ cTerminal MasterTerminal;
  */
 cTerminal SlaveTerminal;
 
+/**
+ * @brief The runway used for the
+ * master terminal's departure
+ */
+cDepartureRunway MasterDepartureRunway;
+/**
+ * @brief The runway used for the
+ * slave terminal's departure.
+ */
+cDepartureRunway SlaveDepartureRunway;
+
+
 #pragma region Functions
 /**
  * @brief Function that initializes and
@@ -172,6 +185,10 @@ Execution InitializeProject()
     Packet = cPacket();
     SlaveTerminal = cTerminal();
     MasterTerminal = cTerminal();
+
+    MasterDepartureRunway = cDepartureRunway();
+    SlaveDepartureRunway = cDepartureRunway();
+
     LeftJoystick = cJoystick(LEFT_JOYSTICK_X_PIN, LEFT_JOYSTICK_Y_PIN, LEFT_JOYSTICK_SWITCH_PIN);
     RightJoystick = cJoystick(RIGHT_JOYSTICK_X_PIN, RIGHT_JOYSTICK_Y_PIN, RIGHT_JOYSTICK_SWITCH_PIN);
 
@@ -232,6 +249,16 @@ Execution TestInitialization()
 
     if(!SlaveTerminal.built){
       Serial.println("Project test: -> SLAVETERMINAL OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!MasterDepartureRunway.built){
+      Serial.println("Project test: -> MasterDepartureRunway OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!SlaveDepartureRunway.built){
+      Serial.println("Project test: -> SlaveDepartureRunway OBJECT FAIL");
       return Execution::Failed;
     }
 
