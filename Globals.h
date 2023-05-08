@@ -30,6 +30,8 @@
 #include <iostream>
 #include <cstring>
 #include <Adafruit_NeoPixel.h>
+#include <Arduino.h>
+
 #include "Defines.h"
 #include "Enums.h"
 #include "RGB.h"
@@ -42,6 +44,13 @@
 #include "Gates.h"
 #include "Runway.h"
 #include "Joystick.h"
+
+#include "Interface_Joystick.h"
+#include "Interface_RGB.h"
+#include "Interface_Switch.h"
+#include "Protocol_BFIO.h"
+#include "Handler_Timebase.h"
+
 #include "_UNIT_TEST_Rgb.h"
 #include "_UNIT_TEST_Data.h"
 #include "_UNIT_TEST_Chunk.h"
@@ -68,6 +77,7 @@
 #define DEBUG_BAUD_RATE 9600
 #define CLOCK_PERIOD_MS 1
 
+#pragma region --- Indicators
 /** 
  * @brief Hardware handling class that
  * directly handles the WS2812 RGB
@@ -82,7 +92,8 @@ Adafruit_NeoPixel WS2812(RGB_COUNT, RGB_PIN, NEO_GRB + NEO_KHZ800);
  * Adafruit hardware handling class.
  */
 RGB Rgb;
-
+#pragma endregion
+#pragma region --- Controls ---
 /**
  * @brief Class allowing easy readings
  * and interfacing of Gamepad's
@@ -100,7 +111,8 @@ cJoystick LeftJoystick;
  * its update called periodically.
  */
 cJoystick RightJoystick;
-
+#pragma endregion
+#pragma region --- Data Parsing --- 
 /**
  * @brief The class that represents the device
  * that executes this program. This class
@@ -138,7 +150,8 @@ cData Data;
  * 
  */
 cPacket Packet;
-
+#pragma endregion
+#pragma region --- Terminals ---
 /**
  * @brief The master terminal of the device.
  * Handles taxiways and runways required to
@@ -153,7 +166,8 @@ cTerminal MasterTerminal;
  * to the other device's function requests.
  */
 cTerminal SlaveTerminal;
-
+#pragma endregion
+#pragma region --- Runways ---
 /**
  * @brief The runway used for the
  * master terminal's departure
@@ -164,7 +178,19 @@ cDepartureRunway MasterDepartureRunway;
  * slave terminal's departure.
  */
 cDepartureRunway SlaveDepartureRunway;
-
+#pragma endregion
+#pragma region --- Gates ---
+/**
+ * @brief This object handles the 
+ * ping gate both for request
+ * arrivals and request
+ * departues aswell as answer parsing.
+ * 
+ * This mandatory BFIO gate is used to
+ * handle the ping functions both ways.
+ */
+cGate_Ping Gate_Ping;
+#pragma endregion
 
 #pragma region Functions
 /**
@@ -185,6 +211,8 @@ Execution InitializeProject()
     Packet = cPacket();
     SlaveTerminal = cTerminal();
     MasterTerminal = cTerminal();
+    
+    Gate_Ping = cGate_Ping();
 
     MasterDepartureRunway = cDepartureRunway();
     SlaveDepartureRunway = cDepartureRunway();
@@ -259,6 +287,12 @@ Execution TestInitialization()
 
     if(!SlaveDepartureRunway.built){
       Serial.println("Project test: -> SlaveDepartureRunway OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!Gate_Ping.built)
+    {
+      Serial.println("Project test: -> Gate_Ping OBJECT FAIL");
       return Execution::Failed;
     }
 

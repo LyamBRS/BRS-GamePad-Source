@@ -79,7 +79,7 @@ class cDepartureRunway
         //////////////////////////////////////////////
         cDepartureRunway();
 
-        cDepartureRunway(Serial& serial);
+        cDepartureRunway(Stream *streamObject);
         //////////////////////////////////////////////
 
         /**

@@ -28,8 +28,8 @@
 //=============================================//
 #include "Globals.h"
 
-#define SIZE_OF_DEPARTURE_TAXIWAY 20;
-#define SIZE_OF_ARRIVAL_PLANE 100;
+#define SIZE_OF_DEPARTURE_TAXIWAY 20
+#define SIZE_OF_ARRIVAL_PLANE 100
 
 
 /**
@@ -68,7 +68,7 @@ class cTerminal
          * as the plane is landing on the arrival
          * runway.
          */
-        _calculatedChecksum = 0;
+        unsigned char _calculatedChecksum = 0;
 
         /**
          * @brief This private member indicates
@@ -140,7 +140,7 @@ class cTerminal
          * The Id of the function to get the departing plane from.
          * @return Execution 
          */
-        Execution cTerminal::GetNextDepartingPlaneID(unsigned char* idOfNextPlane);
+        Execution GetNextDepartingPlaneID(unsigned char* idOfNextPlane);
 
         /**
          * @brief This method queues a packet to be sent eventually.
@@ -171,6 +171,23 @@ class cTerminal
          * @return Execution 
          */
         Execution Reset();
+
+        /**
+         * @brief Stores the last packet stored in
+         * the buffer into an unsigned short packet
+         * buffer array. Make sure that your buffer is
+         * large enough to store the entire packet.
+         * 
+         * @attention
+         * This will clear the buffer of this packet.
+         * 
+         * @param packetBuffer
+         * Array of chunks where the packet will be stored
+         * @param packetBufferSize 
+         * Size of the chunk array
+         * @return Execution 
+         */
+        Execution GetLastArrival(unsigned short* packetBuffer, int packetBufferSize);
 
         /**
          * @brief Get the preliminary information of the
@@ -232,8 +249,6 @@ class cTerminal
          * @return Execution 
          */
         Execution IsPlaneOnDepartureTaxiway(unsigned char planeID);
-
-
  };
 
 #endif

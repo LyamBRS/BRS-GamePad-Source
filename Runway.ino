@@ -30,6 +30,8 @@ cDepartureRunway::cDepartureRunway()
 cDepartureRunway::cDepartureRunway(Stream *streamObject)
 {
       _streamRef = streamObject;
+      built = true;
+      status = HighwayStatus::Empty;
 }
 
 /**
@@ -41,18 +43,20 @@ cDepartureRunway::cDepartureRunway(Stream *streamObject)
 Execution cDepartureRunway::_Handle()
 {
     Execution execution;
+
     if(planeAvailable)
     {
         // A new plane is ready for takeoff!
         currentPlaneChunk = 0;
-        planeAvailable = false;
-        sendingPlane = true;
-        status = HighwayStatus::Traffic;
+        planeAvailable = false;             // No planes are available for takeoff anymore
+        sendingPlane = true;                // There is currently a plane on the runway.
+        status = HighwayStatus::Traffic;    // There is traffic on the runway.
     }
 
     // - Plane is taking off on this runway - //
     if(sendingPlane)
     {
+        // Step 1 is to convert the BFIO chunk into an UART 2 bytes chunk.
         unsigned char UART_ChunksToSend[2];
         unsigned short chunkToSend = _runway[currentPlaneChunk];
 
@@ -64,8 +68,13 @@ Execution cDepartureRunway::_Handle()
             return Execution::Crashed;
         }
 
+        // - Sending the UART Chunks - //
+        _streamRef->print(UART_ChunksToSend[0]);
+        _streamRef->print(UART_ChunksToSend[1]);
         currentPlaneChunk++;
     }
+
+    return Execution::Passed;
 }
 
 /**
@@ -79,5 +88,5 @@ Execution cDepartureRunway::_Handle()
  */
 Execution cDepartureRunway::SetPlaneForTakeOff(unsigned char planeID)
 {
-
+    return Execution::Bypassed;
 }

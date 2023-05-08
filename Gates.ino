@@ -38,6 +38,36 @@ Execution _AskMasterTerminalForDeparture(int planeSize)
     // The plane can use the Master's terminal departure taxiway
     return Execution::Passed;
 }
+
+/// @brief Local function that checks if the Slave terminal's departures can be used with your plane
+/// @param planeSize 
+/// @return 
+Execution _AskSlaveTerminalForDeparture(int planeSize)
+{
+    Execution result;
+
+    if(SlaveTerminal.departureStatus != TerminalStatus::DepartureAvailable)
+    {
+        // Terminal cannot accept planes on its taxiway at the moment
+        return Execution::Failed;
+    }
+
+    result = SlaveTerminal.CanPlaneTaxi(planeSize);
+    if(result != Execution::Passed)
+    {
+        // The plane cannot taxi on this terminal's departure taxiway at the moment.
+        if(result == Execution::NoConnection)
+        {
+            // PLANES DONT HAVE DESTINATIONS (No end device connection detected)
+            return result;
+        }
+
+        return Execution::Failed;
+    }
+
+    // The plane can use the Master's terminal departure taxiway
+    return Execution::Passed;
+}
 /////////////////////////////////////////////////////////////////////////////
 #include "Gates.h"
 /////////////////////////////////////////////////////////////////////////////
@@ -107,7 +137,7 @@ Execution cGateFoundation::_VerifyArrival(unsigned char planeID, unsigned short*
  */
 Execution cGateFoundation::_SendErrorPlane(unsigned char errorCode)
 {
-    return Execution::Passed;
+    return Execution::Bypassed;
 }
 
 
@@ -117,7 +147,7 @@ Execution cGateFoundation::_SendErrorPlane(unsigned char errorCode)
  * taxiway. Otherwise, Execution::Failed is returned.
  * @return Execution 
  */
-Execution cGateFoundation::_CanPlaneTaxi()
+Execution cGateFoundation::_CanPlaneTaxiOnMaster()
 {
     Execution execution;
 
@@ -156,13 +186,49 @@ Execution cGateFoundation::_CanPlaneTaxi()
         return Execution::Bypassed;
     }
 }
+
+/**
+ * @brief This function returns Execution::Passed if
+ * the plane can leave the gate and taxi on the departure
+ * taxiway. Otherwise, Execution::Failed is returned.
+ * @return Execution 
+ */
+Execution cGateFoundation::_CanPlaneTaxiOnSlave()
+{
+    Execution execution;
+
+    // Is the terminal available for planes?
+    execution = _AskSlaveTerminalForDeparture(maxSizeOfPlane);
+    if(execution != Execution::Passed)
+    {
+        // The gate cant allow planes to queue in on the Slave terminal's taxiway
+        return Execution::Bypassed;
+    }
+
+    // Is there already a similar plane on the taxiway?
+    execution = SlaveTerminal.IsPlaneOnDepartureTaxiway(gateID);
+    if(execution != Execution::Failed)
+    {
+        return Execution::Unecessary;
+    }
+
+    // Queue plane in taxiway
+    execution = SlaveTerminal.PutPlaneOnTaxiway(gateID);
+    if(execution != Execution::Passed)
+    {
+        return Execution::Failed;
+    }
+    return Execution::Passed;
+
+}
 //=============================================//
 //	Departing Classes
 //=============================================//
 #pragma region -Departing gates-
 #pragma region MANDATORY
 
-cDeparture_Ping::cDeparture_Ping()
+#pragma region --- PING
+cGate_Ping::cGate_Ping()
 {
     expectedAmountOfParameters = PING_PARAM_COUNT;
     status = GateStatus::ReadyForDeparture;
@@ -171,19 +237,24 @@ cDeparture_Ping::cDeparture_Ping()
     built = true;
     _ping = false;
 }
-
-/// @brief Time base handler of the ping class
+/// @brief Time base handler of the object.
 /// @return 
-Execution cDeparture_Ping::Update()
+Execution cGate_Ping::Update()
 {
+    // - Gate is waiting for the plane to come back - //
     if(status == GateStatus::AwaitingArrival)
     {
-        // - CALCULATE TIMEOUT HERE - //
+        timeLeftForArrival--;
+        if(timeLeftForArrival == 0)
+        {
+            Device.SetErrorMessage("283:Gate -> PING FAILED       ");
+            Device.SetStatus(Status::CommunicationError);
+            return Execution::Failed;
+        }
     }
 
-    return Execution::Passed;
+    return Execution::Bypassed;
 }
-
 /**
  * @brief This method places the departing of a plane
  * into a departing buffer to be sent on the runway.
@@ -196,7 +267,7 @@ Execution cDeparture_Ping::Update()
  * The size of the packet to send.
  * @return Execution 
  */
-Execution cDeparture_Ping::_GetPlaneContent(unsigned short* departingPlane, int* planeSize)
+Execution cGate_Ping::_GetDepartingMasterPlane(unsigned short* departingPlane, int* planeSize)
 {
     Execution execution;
     unsigned char convertedVariable[4];
@@ -204,115 +275,178 @@ Execution cDeparture_Ping::_GetPlaneContent(unsigned short* departingPlane, int*
 
     if(status != GateStatus::JustLeft)
     {
-        Device.SetErrorMessage("Tried to get inexisting plane");
+        Device.SetErrorMessage("207:Gates Inexisting plane    ");
         return Execution::Unecessary;
     }
 
-    // Convert variable to chunks
+    // Convert variable to passengers
     execution = Data.ToBytes(_ping, convertedVariable, 1);
     if(execution != Execution::Passed)
     {
-        Device.SetErrorMessage(INTERNAL_BYTE_CONVERTION_FAIL);
+        Device.SetErrorMessage("215:Gate -> Data.ToBytes      ");
         return Execution::Crashed;
     }
 
-    execution = Packet.GetParameterSegmentFromBytes(convertedVariable, temporaryBuffer, 1, 1);
+    // Convert passengers into seated passengers
+    execution = Packet.GetParameterSegmentFromBytes(convertedVariable, temporaryBuffer, 1, 2);
     if(execution != Execution::Passed)
     {
-        Device.SetErrorMessage(INTERNAL_PACKET_BUILDING_FAIL);
+        Device.SetErrorMessage("222:Gate -> Packet.GetParamSeg");
         return Execution::Crashed;
     }
 
+    // Put the seated passengers in a plane.
     int resultedPacketSize = 4;
     execution = Packet.CreateFromSegments(gateID, temporaryBuffer, 4, departingPlane, resultedPacketSize);
     if(execution != Execution::Passed)
     {
-        Device.SetErrorMessage(INTERNAL_PACKET_BUILDING_FAIL);
+        Device.SetErrorMessage("230:Gate -> Packet.CreateFromS");
         return Execution::Crashed;
     }
 
     *planeSize = 4;
     status = GateStatus::AwaitingArrival;
+    timeLeftForArrival = 1000;
     return Execution::Passed;
 }
-
 /**
- * @brief Attempt to dock a plane to this gate.
+ * @brief Attempt to dock a plane
+ * carrying the answer to the request
+ * sent through the Request function.
  * 
  * @param planeID
- * The ID of the plane to dock.
- * 
+ * The ID of the plane attempting to dock
  * @param planeToDock
  * Array of chunks.
  * @param planeSize 
  * Size of the plane (how big is the array of chunks)
  * @return Execution 
  */
-Execution cDeparture_Ping::_DockPlane(unsigned char planeID, unsigned short* planeToDock, int planeSize)
+Execution cGate_Ping::_DockSlavePlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
 {
     Execution execution;
     unsigned char valuesArray[4];
 
-    // Basic arrival verifications. We don't want imposter planes.
+    // Get the whole plane through TSA
     execution = _VerifyArrival(planeID, planeToDock, planeSize);
     if(execution != Execution::Passed)
     {
-        Device.SetErrorMessage("Failed to verify plane arrival");
+        Device.SetErrorMessage("262:Gate -> _VerifyArrival    ");
         return execution;
     }
 
+    // Extract the passengers from the plane
     execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 1);
     if(execution != Execution::Passed)
     {
-        // Failed :(
+        Device.SetErrorMessage("269:Gate -> Packet.GetBytes   ");
         return Execution::Failed;
     }
 
-    // Get the boolean passenger out of the plane
+    // Get the variable from the passengers
     bool result;
     execution = Data.ToData(&result, valuesArray, 1);
     if(execution != Execution::Passed)
     {
-        Device.SetErrorMessage("Could not convert to boolean.");
+        Device.SetErrorMessage("278:Gate -> Data.ToData       ");
         return Execution::Crashed;
     }
 
     // Holy shit data should be good here riiight?
     _ping = result;
     status = GateStatus::AvailableArrival;
-    return Execution::Passed;
-}
 
+
+
+    return Execution::Passed;   
+}
 /**
- * @brief The method called to send a ping
- * function to the other device and await
- * the answer.
- * @return Execution::Passed = ping is on taxiway
+ * @brief Attempt to dock a function
+ * request to this gate.
+ * 
+ * @param planeID
+ * The ID of the plane attempting to dock
+ * @param planeToDock
+ * Array of chunks.
+ * @param planeSize 
+ * Size of the plane (how big is the array of chunks)
+ * @return Execution 
  */
-Execution cDeparture_Ping::Request(bool pingToSend)
+Execution cGate_Ping::_DockMasterPlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
 {
     Execution execution;
+    unsigned char valuesArray[4];
 
-    execution = _CanPlaneTaxi();
+    // Get the whole plane through TSA
+    execution = _VerifyArrival(planeID, planeToDock, planeSize);
     if(execution != Execution::Passed)
     {
-        //Plane could not taxi on the departure taxiway
+        Device.SetErrorMessage("316:Gate -> _VerifyArrival    ");
+        return execution;
+    }
+
+    // Extract the passengers from the plane
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 1);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("324:Gate -> Packet.GetBytes   ");
+        return Execution::Failed;
+    }
+
+    // Get the variable from the passengers
+    bool result;
+    execution = Data.ToData(&result, valuesArray, 1);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("333:Gate -> Data.ToData       ");
+        return Execution::Crashed;
+    }
+
+    // Holy shit data should be good here riiight?
+    _receivedPing = result;
+    status = GateStatus::AvailableArrival;
+
+    // Can the plane taxi on the slave's runway?
+    execution = _CanPlaneTaxiOnSlave();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
         return execution;
     }
 
     // Plane successfully started taxxing up to the runway!
-    _ping = pingToSend;
-    status = GateStatus::JustLeft;
-    return Execution::Passed;
+    _ping = _pingToReply;
+    return Execution::Passed;   
 }
-
 /**
  * @brief The method called to send a ping
  * function to the other device and await
  * the answer.
- * @return Execution::Passed = Reading worked.
+ * @return Execution::Passed =  ping is sending
  */
-Execution cDeparture_Ping::Read(bool* resultedValue)
+Execution cGate_Ping::Request(bool pingValue)
+{
+    Execution execution;
+
+    // Can the plane taxi on da runway?
+    execution = _CanPlaneTaxiOnMaster();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
+        return execution;
+    }
+
+    // Plane successfully started taxxing up to the runway!
+    _ping = _pingToReply;
+    status = GateStatus::JustLeft;
+    return Execution::Passed;
+}
+/**
+ * @brief This reads if any passengers just
+ * finished unloading from the plane.
+ * @return Execution::Passed = Reading worked | Execution::Bypassed = Nothing to read.
+ */
+Execution cGate_Ping::Read(bool* resultedValue)
 {
     if(status != GateStatus::AvailableArrival)
     {
@@ -320,7 +454,7 @@ Execution cDeparture_Ping::Read(bool* resultedValue)
         return Execution::Bypassed;
     }
 
-    // A plane is docked and passengers already went through the TSA
+    // A plane is docked and passengers already went through TSA
     if(status == GateStatus::AvailableArrival)
     {
         *resultedValue = _receivedPing;
@@ -328,309 +462,11 @@ Execution cDeparture_Ping::Read(bool* resultedValue)
         return Execution::Passed;
     }
 
+    // Literally impossible to reach but funny to leave
     return Execution::Crashed;
 }
-
-/**
- * @brief Class used to get the status of the other device.
- * and update their saved status of your device aswell.
- * Call the Request method to initiate a ping request.
- */
-// class cDeparture_StatusUpdate: public cGateFoundation
-// {
-//   private:
-//       unsigned char _receivedStatus = false;
-//   public:
-//       /// @brief Constructor
-//       cDeparture_StatusUpdate();
-
-//       /// @brief Time base handler of the class
-//       /// @return 
-//       Execution Update();
-
-//       /**
-//        * @brief Attempt to dock a plane to this gate.
-//        * 
-//        * @param planeToDock
-//        * Array of chunks.
-//        * @param planeSize 
-//        * Size of the plane (how big is the array of chunks)
-//        * @return Execution 
-//        */
-//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
-
-//       /**
-//        * @brief The method called to send a
-//        * function to the other device and await
-//        * the answer.
-//        * 
-//        * @attention
-//        * This sends Device.Status
-//        * @return Execution::Passed =  ping is sending
-//        */
-//       Execution Request();
-
-//       /**
-//        * @brief The method called to read the other
-//        * device's answer to the function that was requested
-//        * the answer.
-//        * @return Execution::Passed = Reading worked.
-//        */
-//       Execution Read(unsigned char* resultedStatus);
-// }
-
-// /**
-//  * @brief Class used to update the error message
-//  * saved on other devices aswell as get theirs.
-//  * Call the Request method to initiate an error
-//  * message update request.
-//  */
-// class cDeparture_ErrorMessageUpdate: public cGateFoundation
-// {
-//   private:
-//       std::string _receivedMessage = false;
-//   public:
-//       /// @brief Constructor
-//       cDeparture_ErrorMessageUpdate();
-
-//       /// @brief Time base handler of the class
-//       /// @return 
-//       Execution Update();
-
-//       /**
-//        * @brief Attempt to dock a plane to this gate.
-//        * 
-//        * @param planeToDock
-//        * Array of chunks.
-//        * @param planeSize 
-//        * Size of the plane (how big is the array of chunks)
-//        * @return Execution 
-//        */
-//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
-
-//       /**
-//        * @brief The method called to send a
-//        * function to the other device and await
-//        * the answer.
-//        * 
-//        * @attention
-//        * This sends Device.errormessage automatically
-//        * @return Execution::Passed = plane is now on taxiway
-//        */
-//       Execution Request();
-
-//       /**
-//        * @brief The method called to read the other
-//        * device's answer to the function that was requested
-//        * the answer.
-//        * @return Execution::Passed = Reading worked.
-//        */
-//       Execution Read(std::string& resultedStatus);
-// }
-
-// /**
-//  * @brief Class used to update the type
-//  * saved on other devices aswell as get theirs.
-//  * Call the Request method to initiate a type
-//  * update request.
-//  */
-// class cDeparture_TypeUpdate: public cGateFoundation
-// {
-//   private:
-//       unsigned char _receivedType = 0;
-//   public:
-//       /// @brief Constructor
-//       cDeparture_TypeUpdate();
-
-//       /// @brief Time base handler of the class
-//       /// @return 
-//       Execution Update();
-
-//       /**
-//        * @brief Attempt to dock a plane to this gate.
-//        * 
-//        * @param planeToDock
-//        * Array of chunks.
-//        * @param planeSize 
-//        * Size of the plane (how big is the array of chunks)
-//        * @return Execution 
-//        */
-//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
-
-//       /**
-//        * @brief The method called to send a
-//        * function to the other device and await
-//        * the answer.
-//        * 
-//        * @attention
-//        * This sends Device.type automatically
-//        * @return Execution::Passed = plane is now on taxiway
-//        */
-//       Execution Request();
-
-//       /**
-//        * @brief The method called to read the other
-//        * device's answer to the function that was requested
-//        * the answer.
-//        * @return Execution::Passed = Reading worked.
-//        */
-//       Execution Read(unsigned char* resultedType);
-// }
-
-// /**
-//  * @brief Class used to update the ID
-//  * saved on other devices aswell as get theirs.
-//  * Call the Request method to initiate an ID
-//  * update request.
-//  */
-// class cDeparture_IDUpdate: public cGateFoundation
-// {
-//   private:
-//       unsigned long long _receivedID = 0;
-//   public:
-//       /// @brief Constructor
-//       cDeparture_IDUpdate();
-
-//       /// @brief Time base handler of the class
-//       /// @return 
-//       Execution Update();
-
-//       /**
-//        * @brief Attempt to dock a plane to this gate.
-//        * 
-//        * @param planeToDock
-//        * Array of chunks.
-//        * @param planeSize 
-//        * Size of the plane (how big is the array of chunks)
-//        * @return Execution 
-//        */
-//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
-
-//       /**
-//        * @brief The method called to send a
-//        * function to the other device and await
-//        * the answer.
-//        * 
-//        * @attention
-//        * This sends Device.type automatically
-//        * @return Execution::Passed = plane is now on taxiway
-//        */
-//       Execution Request();
-
-//       /**
-//        * @brief The method called to read the other
-//        * device's answer to the function that was requested
-//        * the answer.
-//        * @return Execution::Passed = Reading worked.
-//        */
-//       Execution Read(unsigned long long* resultedID);
-// }
-
-// /**
-//  * @brief Class used to request a reset of 
-//  * the other device's protocol functions as well
-//  * as saved parameters
-//  */
-// class cDeparture_RestartProtocol: public cGateFoundation
-// {
-//   private:
-//       bool _acknowledged = 0;
-//   public:
-//       /// @brief Constructor
-//       cDeparture_RestartProtocol();
-
-//       /// @brief Time base handler of the class
-//       /// @return 
-//       Execution Update();
-
-//       /**
-//        * @brief Attempt to dock a plane to this gate.
-//        * 
-//        * @param planeToDock
-//        * Array of chunks.
-//        * @param planeSize 
-//        * Size of the plane (how big is the array of chunks)
-//        * @return Execution 
-//        */
-//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
-
-//       /**
-//        * @brief The method called to send a
-//        * function to the other device and await
-//        * the answer.
-//        * 
-//        * @attention
-//        * This sends Device.type automatically
-//        * @return Execution::Passed = plane is now on taxiway
-//        */
-//       Execution Request();
-
-//       /**
-//        * @brief The method called to read the other
-//        * device's answer to the function that was requested
-//        * the answer.
-//        * @return Execution::Passed = Reading worked.
-//        */
-//       Execution Read(bool* acknowledgment);
-// }
-
-// /**
-//  * @brief Class used to request an update of 
-//  * the other device's saved universal information as well
-//  * update your device's saved information about that device.
-//  */
-// class cDeparture_UniversalInfosUpdate: public cGateFoundation
-// {
-//   private:
-//       unsigned long long* _receivedID = 0;
-//       unsigned long long* _receivedBFIOVersion = 0;
-//       unsigned char* _receivedType = 0;
-//       unsigned char* _receivedStatus = 0;
-//       std::string _receivedGitRepository = "";
-//       std::string _receivedDeviceName = "";
-//       std::string _receivedDeviceVersion = "";
-//   public:
-//       /// @brief Constructor
-//       cDeparture_UniversalInfosUpdate();
-
-//       /// @brief Time base handler of the class
-//       /// @return 
-//       Execution Update();
-
-//       /**
-//        * @brief Attempt to dock a plane to this gate.
-//        * 
-//        * @param planeToDock
-//        * Array of chunks.
-//        * @param planeSize 
-//        * Size of the plane (how big is the array of chunks)
-//        * @return Execution 
-//        */
-//       Execution _DockPlane(unsigned short* planeToDock, int planeSize);
-
-//       /**
-//        * @brief The method called to send a
-//        * function to the other device and await
-//        * the answer.
-//        * 
-//        * @attention
-//        * This sends informations automatically.
-//        * @return Execution::Passed = plane is now on taxiway
-//        */
-//       Execution Request();
-
-//       /**
-//        * @brief The method called to read the other
-//        * device's answer to the function that was requested
-//        * the answer.
-//        * @return Execution::Passed = Reading worked.
-//        */
-//       Execution Read(unsigned long long* receivedID, unsigned long long* receivedBFIOVersion, unsigned char* receivedType, unsigned char* receivedStatus, std::string& receivedGitRepository, std::string& receivedDeviceName, std::string& receivedDeviceVersion);
-// }
 #pragma endregion
+
+
 #pragma endregion
-//=============================================//
-//	Arrival Classes
-//=============================================//
-#pragma region -Arrival Gates-
 #pragma endregion
