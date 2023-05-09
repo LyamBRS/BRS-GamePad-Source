@@ -43,6 +43,8 @@
 #include "Terminal.h"
 #include "Gates.h"
 #include "Runway.h"
+
+#include "Switch.h"
 #include "Joystick.h"
 
 #include "Interface_Joystick.h"
@@ -72,6 +74,12 @@
 #define LEFT_JOYSTICK_Y_PIN 39
 ///@brief The Y axis ADC of the right joystick is GPIO 
 #define RIGHT_JOYSTICK_Y_PIN 4
+
+#define BUTTON_1_PIN 25
+#define BUTTON_2_PIN 24
+#define BUTTON_3_PIN 23
+#define BUTTON_4_PIN 17
+#define BUTTON_5_PIN 18
 
 #define RGB_COUNT 1
 #define DEBUG_BAUD_RATE 9600
@@ -111,6 +119,13 @@ cJoystick LeftJoystick;
  * its update called periodically.
  */
 cJoystick RightJoystick;
+
+cSwitch Button1;
+cSwitch Button2;
+cSwitch Button3;
+cSwitch Button4;
+cSwitch Button5;
+
 #pragma endregion
 #pragma region --- Data Parsing --- 
 /**
@@ -217,6 +232,12 @@ Execution InitializeProject()
     MasterDepartureRunway = cDepartureRunway();
     SlaveDepartureRunway = cDepartureRunway();
 
+    Button1 = cSwitch(BUTTON_1_PIN);
+    Button2 = cSwitch(BUTTON_2_PIN);
+    Button3 = cSwitch(BUTTON_3_PIN);
+    Button4 = cSwitch(BUTTON_4_PIN);
+    Button5 = cSwitch(BUTTON_5_PIN);
+
     LeftJoystick = cJoystick(LEFT_JOYSTICK_X_PIN, LEFT_JOYSTICK_Y_PIN, LEFT_JOYSTICK_SWITCH_PIN);
     RightJoystick = cJoystick(RIGHT_JOYSTICK_X_PIN, RIGHT_JOYSTICK_Y_PIN, RIGHT_JOYSTICK_SWITCH_PIN);
 
@@ -293,6 +314,36 @@ Execution TestInitialization()
     if(!Gate_Ping.built)
     {
       Serial.println("Project test: -> Gate_Ping OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!Button1.built)
+    {
+      Serial.println("Project test: -> Button1 OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!Button2.built)
+    {
+      Serial.println("Project test: -> Button2 OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!Button3.built)
+    {
+      Serial.println("Project test: -> Button3 OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!Button4.built)
+    {
+      Serial.println("Project test: -> Button4 OBJECT FAIL");
+      return Execution::Failed;
+    }
+
+    if(!Button5.built)
+    {
+      Serial.println("Project test: -> Button5 OBJECT FAIL");
       return Execution::Failed;
     }
 
