@@ -24,6 +24,9 @@
 #ifndef DEFINES_H
   #define DEFINES_H
 
+
+  #define TIMEOUT_DURATION_MS 1000
+
   #pragma region RGB_ErrorCodes
     // Error CODE:
     // Amount of pulse to do, pulse period in milliseconds, total length of error code in milliseconds

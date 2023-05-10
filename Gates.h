@@ -234,6 +234,270 @@ class cGate_Ping: public cGateFoundation
      */
     Execution Read(bool* resultedValue);
 };
+/**
+ * @brief Class used to send a status to the other device.
+ * Call the Request method to initiate a status request.
+ */
+class cGate_Status: public cGateFoundation
+{
+  private:
+        /// @brief The status to send in requests
+        int _status = 0;
+        /// @brief The status received from any terminals
+        int _receivedStatus = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        int _statusToReply = 0;
+  public:
+    bool built = false;
+    /// @brief Constructor
+    cGate_Status();
+    /// @brief Time base handler of the object.
+    /// @return 
+    Execution Update();
+    /**
+     * @brief This method places the departing of a plane
+     * into a departing buffer to be sent on the runway.
+     * This function is called when the plane is taking off
+     * and finished taxiing.
+     * 
+     * @param departingPlane 
+     * Array of chunks where the packet will be placed
+     * @param planeSize 
+     * The size of the packet to send.
+     * @return Execution 
+     */
+    Execution _GetDepartingMasterPlane(unsigned short* departingPlane, int* planeSize);
+    /**
+     * @brief Attempt to dock a plane
+     * carrying the answer to the request
+     * sent through the Request function.
+     * 
+     * @param planeID
+     * The ID of the plane attempting to dock
+     * @param planeToDock
+     * Array of chunks.
+     * @param planeSize 
+     * Size of the plane (how big is the array of chunks)
+     * @return Execution 
+     */
+    Execution _DockSlavePlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize);
+
+    /**
+     * @brief Attempt to dock a function
+     * request to this gate.
+     * 
+     * @param planeID
+     * The ID of the plane attempting to dock
+     * @param planeToDock
+     * Array of chunks.
+     * @param planeSize 
+     * Size of the plane (how big is the array of chunks)
+     * @return Execution 
+     */
+    Execution _DockMasterPlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize);
+
+    /**
+     * @brief The method called to send a status
+     * function to the other device and await
+     * the answer.
+     * @return Execution::Passed = status is sending
+     */
+    Execution Request();
+    /**
+     * @brief This reads if any passengers just
+     * finished unloading from the plane.
+     * @return Execution::Passed = Reading worked | Execution::Bypassed = Nothing to read.
+     */
+    Execution Read(int* resultedValue);
+};
+
+/**
+ * @brief Class used to send an ID to the other device.
+ * Call the Request method to initiate a status request.
+ */
+class cGate_ID: public cGateFoundation
+{
+  private:
+        /// @brief The status to send in requests
+        unsigned long long _ID = 2023050910180001;
+        /// @brief The status received from any terminals
+        unsigned long long _receivedID = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        unsigned long long _IDToSend = 0;
+  public:
+    bool built = false;
+    /// @brief Constructor
+    cGate_ID();
+    /// @brief Time base handler of the object.
+    /// @return 
+    Execution Update();
+    /**
+     * @brief This method places the departing of a plane
+     * into a departing buffer to be sent on the runway.
+     * This function is called when the plane is taking off
+     * and finished taxiing.
+     * 
+     * @param departingPlane 
+     * Array of chunks where the packet will be placed
+     * @param planeSize 
+     * The size of the packet to send.
+     * @return Execution 
+     */
+    Execution _GetDepartingMasterPlane(unsigned short* departingPlane, int* planeSize);
+    /**
+     * @brief Attempt to dock a plane
+     * carrying the answer to the request
+     * sent through the Request function.
+     * 
+     * @param planeID
+     * The ID of the plane attempting to dock
+     * @param planeToDock
+     * Array of chunks.
+     * @param planeSize 
+     * Size of the plane (how big is the array of chunks)
+     * @return Execution 
+     */
+    Execution _DockSlavePlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize);
+
+    /**
+     * @brief Attempt to dock a function
+     * request to this gate.
+     * 
+     * @param planeID
+     * The ID of the plane attempting to dock
+     * @param planeToDock
+     * Array of chunks.
+     * @param planeSize 
+     * Size of the plane (how big is the array of chunks)
+     * @return Execution 
+     */
+    Execution _DockMasterPlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize);
+
+    /**
+     * @brief The method called to send a status
+     * function to the other device and await
+     * the answer.
+     * @return Execution::Passed = status is sending
+     */
+    Execution Request();
+    /**
+     * @brief This reads if any passengers just
+     * finished unloading from the plane.
+     * @return Execution::Passed = Reading worked | Execution::Bypassed = Nothing to read.
+     */
+    Execution Read(int* resultedValue);
+};
+/**
+ * @brief Class used to send an universal to the other device.
+ * Call the Request method to initiate a status request.
+ */
+class cGate_UniversalInfo: public cGateFoundation
+{
+  private:
+        /// @brief The status to send in requests
+        unsigned long long _ID = 2023050910180001;
+        /// @brief The status received from any terminals
+        unsigned long long _receivedID = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        unsigned long long _IDToSend = 2023050910180001;
+
+        /// @brief The status to send in requests
+        unsigned long long _BFIOID = BFIO_VERSION_ID;
+        /// @brief The status received from any terminals
+        unsigned long long _receivedBFIO = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        unsigned long long _BFIOToSend = 0;
+
+        /// @brief The status to send in requests
+        unsigned char _type = 0;
+        /// @brief The status received from any terminals
+        unsigned char _receivedType = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        unsigned char _typeToSend = 0;
+
+        /// @brief The status to send in requests
+        unsigned char _status = 0;
+        /// @brief The status received from any terminals
+        unsigned char _receivedStatus = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        unsigned char _statusToSend = 0;
+
+        /// @brief The status to send in requests
+        std::string _gitRepository = "";//BFIO_GIT_REPOSITORY;
+        /// @brief The status received from any terminals
+        std::string _receivedGitRepository = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        std::string _repositoryToSend = "";//BFIO_GIT_REPOSITORY;
+
+        /// @brief The status to send in requests
+        std::string _nameOfDevice = "";//EVICE_NAME;
+        /// @brief The status received from any terminals
+        std::string _receivedDeviceName = 0;
+        /// @brief The status to reply to the other airport's master terminal.
+        std::string _deviceNameToSend = "";//DEVICE_NAME;
+  public:
+    bool built = false;
+    /// @brief Constructor
+    cGate_UniversalInfo();
+    /// @brief Time base handler of the object.
+    /// @return 
+    Execution Update();
+    /**
+     * @brief This method places the departing of a plane
+     * into a departing buffer to be sent on the runway.
+     * This function is called when the plane is taking off
+     * and finished taxiing.
+     * 
+     * @param departingPlane 
+     * Array of chunks where the packet will be placed
+     * @param planeSize 
+     * The size of the packet to send.
+     * @return Execution 
+     */
+    Execution _GetDepartingMasterPlane(unsigned short* departingPlane, int* planeSize);
+    /**
+     * @brief Attempt to dock a plane
+     * carrying the answer to the request
+     * sent through the Request function.
+     * 
+     * @param planeID
+     * The ID of the plane attempting to dock
+     * @param planeToDock
+     * Array of chunks.
+     * @param planeSize 
+     * Size of the plane (how big is the array of chunks)
+     * @return Execution 
+     */
+    Execution _DockSlavePlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize);
+
+    /**
+     * @brief Attempt to dock a function
+     * request to this gate.
+     * 
+     * @param planeID
+     * The ID of the plane attempting to dock
+     * @param planeToDock
+     * Array of chunks.
+     * @param planeSize 
+     * Size of the plane (how big is the array of chunks)
+     * @return Execution 
+     */
+    Execution _DockMasterPlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize);
+
+    /**
+     * @brief The method called to send a status
+     * function to the other device and await
+     * the answer.
+     * @return Execution::Passed = status is sending
+     */
+    Execution Request();
+    /**
+     * @brief This reads if any passengers just
+     * finished unloading from the plane.
+     * @return Execution::Passed = Reading worked | Execution::Bypassed = Nothing to read.
+     */
+    Execution Read();
+};
 
 #pragma endregion
 #pragma endregion

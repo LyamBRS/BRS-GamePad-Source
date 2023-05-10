@@ -22,6 +22,8 @@
 //	Global Variables
 //=============================================//
 #define BFIO_TIMEOUT_MS 1000
+#define BFIO_VERSION_ID 202305091044
+#define BFIO_GIT_REPOSITORY "https://github.com/LyamBRS/BrSpand_GamePad.git"
 #define _AMOUNT_OF_SUPPORTED_ID 20
 #define MAX_PLANE_PASSENGER_CAPACITY 255
 

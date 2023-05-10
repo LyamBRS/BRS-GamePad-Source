@@ -9,6 +9,8 @@
  * 
  */
 
+ #include "Globals.h"
+
 /// @brief Local function that checks if the Master terminal's departures can be used with your plane
 /// @param planeSize 
 /// @return 
@@ -252,7 +254,6 @@ Execution cGate_Ping::Update()
             return Execution::Failed;
         }
     }
-
     return Execution::Bypassed;
 }
 /**
@@ -306,7 +307,7 @@ Execution cGate_Ping::_GetDepartingMasterPlane(unsigned short* departingPlane, i
 
     *planeSize = 4;
     status = GateStatus::AwaitingArrival;
-    timeLeftForArrival = 1000;
+    timeLeftForArrival = TIMEOUT_DURATION_MS;
     return Execution::Passed;
 }
 /**
@@ -467,6 +468,728 @@ Execution cGate_Ping::Read(bool* resultedValue)
 }
 #pragma endregion
 
+#pragma region --- Status
+/// @brief Constructor
+cGate_Status::cGate_Status()
+{
+    expectedAmountOfParameters = STATUS_PARAM_COUNT;
+    status = GateStatus::ReadyForDeparture;
+    gateID = STATUS_PLANE_ID;
+    maxSizeOfPlane = STATUS_PASSENGER_CAPACITY;
+    built = true;
+    /*
+    _status = Device.GetStatus();
+    */
+}
+/// @brief Time base handler of the object.
+/// @return 
+Execution cGate_Status::Update()
+{
+    // - Gate is waiting for the plane to come back - //
+    if(status == GateStatus::AwaitingArrival)
+    {
+        timeLeftForArrival--;
+        if(timeLeftForArrival == 0)
+        {
+            Device.SetErrorMessage("502:Gate -> STATUS FAILED     ");
+            Device.SetStatus(Status::CommunicationError);
+            return Execution::Failed;
+        }
+    }
+    return Execution::Bypassed;  
+}
+/**
+ * @brief This method places the departing of a plane
+ * into a departing buffer to be sent on the runway.
+ * This function is called when the plane is taking off
+ * and finished taxiing.
+ * 
+ * @param departingPlane 
+ * Array of chunks where the packet will be placed
+ * @param planeSize 
+ * The size of the packet to send.
+ * @return Execution 
+ */
+Execution cGate_Status::_GetDepartingMasterPlane(unsigned short* departingPlane, int* planeSize)
+{
+    Execution execution;
+    unsigned char convertedVariable[4];
+    unsigned short temporaryBuffer[5];
+
+    if(status != GateStatus::JustLeft)
+    {
+        Device.SetErrorMessage("529:Gates Inexisting plane    ");
+        return Execution::Unecessary;
+    }
+
+    // Convert variable to passengers
+    execution = Data.ToBytes(_status, convertedVariable, 4);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("537:Gate -> Data.ToBytes      ");
+        return Execution::Crashed;
+    }
+
+    // Convert passengers into seated passengers
+    execution = Packet.GetParameterSegmentFromBytes(convertedVariable, temporaryBuffer, 4, 5);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("222:Gate -> Packet.GetParamSeg");
+        return Execution::Crashed;
+    }
+
+    // Put the seated passengers in a plane.
+    int resultedPacketSize = 7;
+    execution = Packet.CreateFromSegments(gateID, temporaryBuffer, 5, departingPlane, resultedPacketSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("554:Gate -> Packet.CreateFromS");
+        return Execution::Crashed;
+    }
+
+    *planeSize = 4;
+    status = GateStatus::AwaitingArrival;
+    timeLeftForArrival = TIMEOUT_DURATION_MS;
+    return Execution::Passed;
+}
+/**
+ * @brief Attempt to dock a plane
+ * carrying the answer to the request
+ * sent through the Request function.
+ * 
+ * @param planeID
+ * The ID of the plane attempting to dock
+ * @param planeToDock
+ * Array of chunks.
+ * @param planeSize 
+ * Size of the plane (how big is the array of chunks)
+ * @return Execution 
+ */
+Execution cGate_Status::_DockSlavePlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
+{
+    Execution execution;
+    unsigned char valuesArray[4];
+
+    // Get the whole plane through TSA
+    execution = _VerifyArrival(planeID, planeToDock, planeSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("585:Gate -> _VerifyArrival    ");
+        return execution;
+    }
+
+    // Extract the passengers from the plane
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 4);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("593:Gate -> Packet.GetBytes   ");
+        return Execution::Failed;
+    }
+
+    // Get the variable from the passengers
+    int result;
+    execution = Data.ToData(&result, valuesArray, 4);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("602:Gate -> Data.ToData       ");
+        return Execution::Crashed;
+    }
+
+    // Holy shit data should be good here riiight?
+    _receivedStatus = result;
+    status = GateStatus::AvailableArrival;
+
+    return Execution::Passed;   
+}
+/**
+ * @brief Attempt to dock a function
+ * request to this gate.
+ * 
+ * @param planeID
+ * The ID of the plane attempting to dock
+ * @param planeToDock
+ * Array of chunks.
+ * @param planeSize 
+ * Size of the plane (how big is the array of chunks)
+ * @return Execution 
+ */
+Execution cGate_Status::_DockMasterPlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
+{
+    Execution execution;
+    unsigned char valuesArray[4];
+
+    // Get the whole plane through TSA
+    execution = _VerifyArrival(planeID, planeToDock, planeSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("634:Gate -> _VerifyArrival    ");
+        return execution;
+    }
+
+    // Extract the passengers from the plane
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 4);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("642:Gate -> Packet.GetBytes   ");
+        return Execution::Failed;
+    }
+
+    // Get the variable from the passengers
+    bool result;
+    execution = Data.ToData(&result, valuesArray, 4);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("651:Gate -> Data.ToData       ");
+        return Execution::Crashed;
+    }
+
+    // Holy shit data should be good here riiight?
+    _receivedStatus = result;
+    status = GateStatus::AvailableArrival;
+
+    // Can the plane taxi on the slave's runway?
+    execution = _CanPlaneTaxiOnSlave();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
+        return execution;
+    }
+
+    // Plane successfully started taxxing up to the runway!
+    return Execution::Passed;   
+}
+/**
+ * @brief The method called to send a status
+ * function to the other device and await
+ * the answer.
+ * @return Execution::Passed = status is sending
+ */
+Execution cGate_Status::Request()
+{
+    Execution execution;
+
+    // Can the plane taxi on da runway?
+    execution = _CanPlaneTaxiOnMaster();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
+        return execution;
+    }
+
+    // Plane successfully started taxxing up to the runway!
+    Device.GetStatus(&_status);
+    status = GateStatus::JustLeft;
+    return Execution::Passed;
+}
+/**
+ * @brief This reads if any passengers just
+ * finished unloading from the plane.
+ * @return Execution::Passed = Reading worked | Execution::Bypassed = Nothing to read.
+ */
+Execution cGate_Status::Read(int* resultedValue)
+{
+    if(status != GateStatus::AvailableArrival)
+    {
+        // There is no plane to get passengers from.
+        return Execution::Bypassed;
+    }
+
+    // A plane is docked and passengers already went through TSA
+    if(status == GateStatus::AvailableArrival)
+    {
+        *resultedValue = _receivedStatus;
+        status = GateStatus::ReadyForDeparture;
+        return Execution::Passed;
+    }
+
+    // Literally impossible to reach but funny to leave
+    return Execution::Crashed;
+}
+#pragma endregion
+
+#pragma region --- ID
+/// @brief Constructor
+cGate_ID::cGate_ID()
+{
+    expectedAmountOfParameters = ID_PARAM_COUNT;
+    status = GateStatus::ReadyForDeparture;
+    gateID = ID_PLANE_ID;
+    maxSizeOfPlane = ID_PASSENGER_CAPACITY;
+    built = true;
+    /*
+    _status = Device.GetStatus();
+    */
+}
+/// @brief Time base handler of the object.
+/// @return 
+Execution cGate_ID::Update()
+{
+    // - Gate is waiting for the plane to come back - //
+    if(status == GateStatus::AwaitingArrival)
+    {
+        timeLeftForArrival--;
+        if(timeLeftForArrival == 0)
+        {
+            Device.SetErrorMessage("727:Gate -> ID FAILED         ");
+            Device.SetStatus(Status::CommunicationError);
+            return Execution::Failed;
+        }
+    }
+    return Execution::Bypassed;  
+}
+/**
+ * @brief This method places the departing of a plane
+ * into a departing buffer to be sent on the runway.
+ * This function is called when the plane is taking off
+ * and finished taxiing.
+ * 
+ * @param departingPlane 
+ * Array of chunks where the packet will be placed
+ * @param planeSize 
+ * The size of the packet to send.
+ * @return Execution 
+ */
+Execution cGate_ID::_GetDepartingMasterPlane(unsigned short* departingPlane, int* planeSize)
+{
+    Execution execution;
+    unsigned char convertedVariable[8];
+    unsigned short temporaryBuffer[9];
+
+    if(status != GateStatus::JustLeft)
+    {
+        Device.SetErrorMessage("754:Gates Inexisting plane    ");
+        return Execution::Unecessary;
+    }
+
+    // Convert variable to passengers
+    execution = Data.ToBytes(_ID, convertedVariable, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("762:Gate -> Data.ToBytes      ");
+        return Execution::Crashed;
+    }
+
+    // Convert passengers into seated passengers
+    execution = Packet.GetParameterSegmentFromBytes(convertedVariable, temporaryBuffer, 8, 9);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("770:Gate -> Packet.GetParamSeg");
+        return Execution::Crashed;
+    }
+
+    // Put the seated passengers in a plane.
+    int resultedPacketSize = 9;
+    execution = Packet.CreateFromSegments(gateID, temporaryBuffer, 9, departingPlane, resultedPacketSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("779:Gate -> Packet.CreateFromS");
+        return Execution::Crashed;
+    }
+
+    *planeSize = 11;
+    status = GateStatus::AwaitingArrival;
+    timeLeftForArrival = TIMEOUT_DURATION_MS;
+    return Execution::Passed;
+}
+/**
+ * @brief Attempt to dock a plane
+ * carrying the answer to the request
+ * sent through the Request function.
+ * 
+ * @param planeID
+ * The ID of the plane attempting to dock
+ * @param planeToDock
+ * Array of chunks.
+ * @param planeSize 
+ * Size of the plane (how big is the array of chunks)
+ * @return Execution 
+ */
+Execution cGate_ID::_DockSlavePlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
+{
+    Execution execution;
+    unsigned char valuesArray[8];
+
+    // Get the whole plane through TSA
+    execution = _VerifyArrival(planeID, planeToDock, planeSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("585:Gate -> _VerifyArrival    ");
+        return execution;
+    }
+
+    // Extract the passengers from the plane
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("818:Gate -> Packet.GetBytes   ");
+        return Execution::Failed;
+    }
+
+    // Get the variable from the passengers
+    int result;
+    execution = Data.ToData(&result, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("827:Gate -> Data.ToData       ");
+        return Execution::Crashed;
+    }
+
+    // Holy shit data should be good here riiight?
+    _receivedID = result;
+    status = GateStatus::AvailableArrival;
+
+    return Execution::Passed;   
+}
+/**
+ * @brief Attempt to dock a function
+ * request to this gate.
+ * 
+ * @param planeID
+ * The ID of the plane attempting to dock
+ * @param planeToDock
+ * Array of chunks.
+ * @param planeSize 
+ * Size of the plane (how big is the array of chunks)
+ * @return Execution 
+ */
+Execution cGate_ID::_DockMasterPlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
+{
+    Execution execution;
+    unsigned char valuesArray[8];
+
+    // Get the whole plane through TSA
+    execution = _VerifyArrival(planeID, planeToDock, planeSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("858:Gate -> _VerifyArrival    ");
+        return execution;
+    }
+
+    // Extract the passengers from the plane
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("866:Gate -> Packet.GetBytes   ");
+        return Execution::Failed;
+    }
+
+    // Get the variable from the passengers
+    bool result;
+    execution = Data.ToData(&result, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("875:Gate -> Data.ToData       ");
+        return Execution::Crashed;
+    }
+
+    // Holy shit data should be good here riiight?
+    _receivedID = result;
+    status = GateStatus::AvailableArrival;
+
+    // Can the plane taxi on the slave's runway?
+    execution = _CanPlaneTaxiOnSlave();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
+        return execution;
+    }
+
+    // Plane successfully started taxxing up to the runway!
+    return Execution::Passed;   
+}
+/**
+ * @brief The method called to send a status
+ * function to the other device and await
+ * the answer.
+ * @return Execution::Passed = status is sending
+ */
+Execution cGate_ID::Request()
+{
+    Execution execution;
+
+    // Can the plane taxi on da runway?
+    execution = _CanPlaneTaxiOnMaster();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
+        return execution;
+    }
+
+    // Plane successfully started taxxing up to the runway!
+    /*
+    Device.GetStatus(&_status);
+    */
+    status = GateStatus::JustLeft;
+    return Execution::Passed;
+}
+/**
+ * @brief This reads if any passengers just
+ * finished unloading from the plane.
+ * @return Execution::Passed = Reading worked | Execution::Bypassed = Nothing to read.
+ */
+Execution cGate_ID::Read(int* resultedValue)
+{
+    if(status != GateStatus::AvailableArrival)
+    {
+        // There is no plane to get passengers from.
+        return Execution::Bypassed;
+    }
+
+    // A plane is docked and passengers already went through TSA
+    if(status == GateStatus::AvailableArrival)
+    {
+        *resultedValue = _receivedID;
+        status = GateStatus::ReadyForDeparture;
+        return Execution::Passed;
+    }
+
+    // Literally impossible to reach but funny to leave
+    return Execution::Crashed;
+}
+#pragma endregion
+
+#pragma region --- UNIVERSAL INFO
+/// @brief Constructor
+cGate_UniversalInfo::cGate_UniversalInfo()
+{
+    expectedAmountOfParameters = UNIVERSALINFO_PARAM_COUNT;
+    status = GateStatus::ReadyForDeparture;
+    gateID = UNIVERSALINFO_PLANE_ID;
+    maxSizeOfPlane = 100;
+    built = true;
+    /*
+    Device.GetStatus(&_status);
+    */
+}
+/// @brief Time base handler of the object.
+/// @return 
+Execution cGate_UniversalInfo::Update()
+{
+    // - Gate is waiting for the plane to come back - //
+    if(status == GateStatus::AwaitingArrival)
+    {
+        timeLeftForArrival--;
+        if(timeLeftForArrival == 0)
+        {
+            Device.SetErrorMessage("727:Gate -> ID FAILED         ");
+            Device.SetStatus(Status::CommunicationError);
+            return Execution::Failed;
+        }
+    }
+    return Execution::Bypassed;  
+}
+/**
+ * @brief This method places the departing of a plane
+ * into a departing buffer to be sent on the runway.
+ * This function is called when the plane is taking off
+ * and finished taxiing.
+ * 
+ * @param departingPlane 
+ * Array of chunks where the packet will be placed
+ * @param planeSize 
+ * The size of the packet to send.
+ * @return Execution 
+ */
+Execution cGate_UniversalInfo::_GetDepartingMasterPlane(unsigned short* departingPlane, int* planeSize)
+{
+    Execution execution;
+    unsigned char convertedVariable[8];
+    unsigned short temporaryBuffer[9];
+
+    if(status != GateStatus::JustLeft)
+    {
+        Device.SetErrorMessage("754:Gates Inexisting plane    ");
+        return Execution::Unecessary;
+    }
+
+    // Convert variable to passengers
+    execution = Data.ToBytes(_ID, convertedVariable, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("762:Gate -> Data.ToBytes      ");
+        return Execution::Crashed;
+    }
+
+    // Convert passengers into seated passengers
+    execution = Packet.GetParameterSegmentFromBytes(convertedVariable, temporaryBuffer, 8, 9);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("770:Gate -> Packet.GetParamSeg");
+        return Execution::Crashed;
+    }
+
+    // Put the seated passengers in a plane.
+    int resultedPacketSize = 9;
+    execution = Packet.CreateFromSegments(gateID, temporaryBuffer, 9, departingPlane, resultedPacketSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("779:Gate -> Packet.CreateFromS");
+        return Execution::Crashed;
+    }
+
+    *planeSize = 11;
+    status = GateStatus::AwaitingArrival;
+    timeLeftForArrival = TIMEOUT_DURATION_MS;
+    return Execution::Passed;
+}
+/**
+ * @brief Attempt to dock a plane
+ * carrying the answer to the request
+ * sent through the Request function.
+ * 
+ * @param planeID
+ * The ID of the plane attempting to dock
+ * @param planeToDock
+ * Array of chunks.
+ * @param planeSize 
+ * Size of the plane (how big is the array of chunks)
+ * @return Execution 
+ */
+Execution cGate_UniversalInfo::_DockSlavePlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
+{
+    Execution execution;
+    unsigned char valuesArray[8];
+
+    // Get the whole plane through TSA
+    execution = _VerifyArrival(planeID, planeToDock, planeSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("585:Gate -> _VerifyArrival    ");
+        return execution;
+    }
+
+    // Extract the passengers from the plane
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("818:Gate -> Packet.GetBytes   ");
+        return Execution::Failed;
+    }
+
+    // Get the variable from the passengers
+    int result;
+    execution = Data.ToData(&result, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("827:Gate -> Data.ToData       ");
+        return Execution::Crashed;
+    }
+
+    // Holy shit data should be good here riiight?
+    _receivedID = result;
+    status = GateStatus::AvailableArrival;
+
+    return Execution::Passed;   
+}
+/**
+ * @brief Attempt to dock a function
+ * request to this gate.
+ * 
+ * @param planeID
+ * The ID of the plane attempting to dock
+ * @param planeToDock
+ * Array of chunks.
+ * @param planeSize 
+ * Size of the plane (how big is the array of chunks)
+ * @return Execution 
+ */
+Execution cGate_UniversalInfo::_DockMasterPlaneArrival(unsigned char planeID, unsigned short* planeToDock, int planeSize)
+{
+    Execution execution;
+    unsigned char valuesArray[8];
+
+    // Get the whole plane through TSA
+    execution = _VerifyArrival(planeID, planeToDock, planeSize);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("858:Gate -> _VerifyArrival    ");
+        return execution;
+    }
+
+    // Extract the passengers from the plane
+    execution = Packet.GetBytes(planeToDock, planeSize, 1, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("866:Gate -> Packet.GetBytes   ");
+        return Execution::Failed;
+    }
+
+    // Get the variable from the passengers
+    bool result;
+    execution = Data.ToData(&result, valuesArray, 8);
+    if(execution != Execution::Passed)
+    {
+        Device.SetErrorMessage("875:Gate -> Data.ToData       ");
+        return Execution::Crashed;
+    }
+
+    // Holy shit data should be good here riiight?
+    _receivedID = result;
+    status = GateStatus::AvailableArrival;
+
+    // Can the plane taxi on the slave's runway?
+    execution = _CanPlaneTaxiOnSlave();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
+        return execution;
+    }
+
+    // Plane successfully started taxxing up to the runway!
+    return Execution::Passed;   
+}
+/**
+ * @brief The method called to send a status
+ * function to the other device and await
+ * the answer.
+ * @return Execution::Passed = status is sending
+ */
+Execution cGate_UniversalInfo::Request()
+{
+  /*
+    Execution execution;
+
+    // Can the plane taxi on da runway?
+    execution = _CanPlaneTaxiOnMaster();
+    if(execution != Execution::Passed)
+    {
+        //Plane could not taxi on the departure taxiway :(
+        return execution;
+    }
+
+    // Plane successfully started taxxing up to the runway!
+    Device.GetStatus(&_status);
+    status = GateStatus::JustLeft;
+    */
+    return Execution::Passed;
+}
+/**
+ * @brief This reads if any passengers just
+ * finished unloading from the plane.
+ * @return Execution::Passed = Reading worked | Execution::Bypassed = Nothing to read.
+ */
+Execution cGate_UniversalInfo::Read()
+{
+  /*
+    if(status != GateStatus::AvailableArrival)
+    {
+        // There is no plane to get passengers from.
+        return Execution::Bypassed;
+    }
+
+    // A plane is docked and passengers already went through TSA
+    if(status == GateStatus::AvailableArrival)
+    {
+        *resultedValue = _receivedID;
+        status = GateStatus::ReadyForDeparture;
+        return Execution::Passed;
+    }
+
+    // Literally impossible to reach but funny to leave
+    */
+    return Execution::Crashed;
+}
+#pragma endregion
 
 #pragma endregion
 #pragma endregion

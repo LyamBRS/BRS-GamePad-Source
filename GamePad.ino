@@ -20,23 +20,32 @@
 //================================================================================================//
 
 void setup() {
+  Execution execution;
   Serial.begin(9600);
-  //Rgb.SetColors(255, 255, 255);
-  //Rgb.Update();
+  Rgb.SetColors(255, 255, 255);
+  execution = Rgb.Update();
+  if(execution != Execution::Passed)
+  {
+    Serial.println("29");
+  }
 
-  //Serial.println(Rgb.currentRed);
-  //Serial.println(Rgb.currentGreen);
-  //Serial.println(Rgb.currentBlue);
+  // Serial.println(Rgb.currentRed);
+  // Serial.println(Rgb.currentGreen);
+  // Serial.println(Rgb.currentBlue);
   InitializeProject();
   Device.SetStatus(Status::Booting);
   for(int i=0; i<1000; ++i)
   {
-    Rgb.Update();
+    execution = Rgb.Update();
+    if(execution != Execution::Passed)
+    {
+      Serial.println("42");
+    }
     delay(1);
   }
 
-  Execution result = TestInitialization();
-  if(result == Execution::Passed)
+  execution = TestInitialization();
+  if(execution == Execution::Passed)
   {
     Device.SetStatus(Status::Clueless);
   }
@@ -47,11 +56,19 @@ void setup() {
 
   for(int i=0; i<5000; ++i)
   {
-    Rgb.Update();
+    execution = Rgb.Update();
+    if(execution != Execution::Passed)
+    {
+      Serial.println("62");
+    }
     delay(1);
   }
 
-  result = TestAllUnits();
+  execution = TestAllUnits();
+  if(execution != Execution::Passed)
+  {
+    Device.SetStatus(Status::SoftwareError);
+  }
 }
 
 unsigned int milliseconds = 0;
@@ -60,7 +77,40 @@ int previousStatus = Status::Available;
 void loop() {
 
   Rgb.Update();
-  // LeftJoystick.Update();
+  LeftJoystick.Update();
+  RightJoystick.Update();
+
+  signed char right_x = 0;
+  signed char left_x = 0;
+  signed char left_y = 0;
+  signed char right_y = 0;
+
+  bool left_button = 0;
+  bool right_button = 0; 
+
+  LeftJoystick.GetCurrentAxis_X(&left_x);
+  LeftJoystick.GetCurrentAxis_Y(&left_y);
+
+  RightJoystick.GetCurrentAxis_X(&right_x);
+  RightJoystick.GetCurrentAxis_Y(&right_y);
+
+  LeftJoystick.GetCurrentSwitch(&left_button);
+  RightJoystick.GetCurrentSwitch(&right_button);
+
+  Serial.println("RX: ");
+  Serial.print(right_x);
+  Serial.println("RY: ");
+  Serial.print(right_y);
+  Serial.println("RB: ");
+  Serial.print(right_button);
+
+  Serial.println("LX: ");
+  Serial.print(left_x);
+  Serial.println("LY: ");
+  Serial.print(left_y);
+  Serial.println("LB: ");
+  Serial.print(left_button);
+  Serial.println("\n\n");
 // 
             // unsigned char red = analogRead(8);
             // unsigned char blue = analogRead(5);
@@ -163,8 +213,5 @@ void loop() {
         // break;
     // }
   //}
-
-
-  Rgb.Update();
   delay(1);
 }
