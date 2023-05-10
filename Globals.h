@@ -63,9 +63,9 @@
 ///@brief RGB LED uses GPIO 48
 #define RGB_PIN 38
 ///@brief The button of the left joystick is GPIO45
-#define LEFT_JOYSTICK_SWITCH_PIN 26
+#define LEFT_JOYSTICK_SWITCH_PIN 45
 ///@brief The button of the right joystick is GPIO16
-#define RIGHT_JOYSTICK_SWITCH_PIN 9
+#define RIGHT_JOYSTICK_SWITCH_PIN 16
 ///@brief The X axis ADC of the left joystick is GPIO 
 #define LEFT_JOYSTICK_X_PIN 3
 ///@brief The X axis ADC of the right joystick is GPIO 
@@ -75,11 +75,11 @@
 ///@brief The Y axis ADC of the right joystick is GPIO 
 #define RIGHT_JOYSTICK_Y_PIN 1
 
-#define BUTTON_1_PIN 25
-#define BUTTON_2_PIN 24
-#define BUTTON_3_PIN 23
-#define BUTTON_4_PIN 17
-#define BUTTON_5_PIN 18
+#define BUTTON_1_PIN 48
+#define BUTTON_2_PIN 47
+#define BUTTON_3_PIN 21
+#define BUTTON_4_PIN 9
+#define BUTTON_5_PIN 10
 
 #define RGB_COUNT 1
 #define DEBUG_BAUD_RATE 9600

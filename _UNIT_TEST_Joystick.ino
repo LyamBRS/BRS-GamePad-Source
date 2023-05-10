@@ -188,8 +188,8 @@ Execution TEST_JOYSTICK_GetSetDeadZone_X()
 {
     TestStart("GetSetDeadZone_X");
     Execution result;
-    signed char wantedDeadzone = 0;
-    signed char resultedDeadzone = 1;
+    int wantedDeadzone = 0;
+    int resultedDeadzone = 1;
 
     #pragma region -Positive values given-
     #pragma region LeftJoystick
@@ -361,8 +361,8 @@ Execution TEST_JOYSTICK_GetSetDeadZone_Y()
 {
     TestStart("GetSetDeadZone_Y");
     Execution result;
-    signed char wantedDeadzone = 0;
-    signed char resultedDeadzone = 1;
+    int wantedDeadzone = 0;
+    int resultedDeadzone = 1;
 
     #pragma region -Positive values given-
     #pragma region LeftJoystick
@@ -529,8 +529,8 @@ Execution TEST_JOYSTICK_GetSetTrim_X()
 {
     TestStart("GetSetTrim_X");
     Execution result;
-    signed char wantedTrim = 0;
-    signed char resultedTrim = 1;
+    int wantedTrim = 0;
+    int resultedTrim = 1;
 
     #pragma region -Entire spectrum of values-
 
@@ -541,7 +541,8 @@ Execution TEST_JOYSTICK_GetSetTrim_X()
         TestStepDone();
         if(result != Execution::Passed)
         {
-            TestFailed("Unexpected execution result from LeftJoystick.SetTrim_X when testing entire range");
+            TestFailed("554: Unexpected execution result from LeftJoystick.SetTrim_X when testing entire range");
+            TestExecution(result);
             return Execution::Failed;
         }
 
@@ -549,13 +550,15 @@ Execution TEST_JOYSTICK_GetSetTrim_X()
         TestStepDone();
         if(result != Execution::Passed)
         {
-            TestFailed("Unexpected execution result from LeftJoystick.GetTrim_X when testing entire range");
+            TestFailed("552: Unexpected execution result from LeftJoystick.GetTrim_X when testing entire range");
+            TestExecution(result);
             return Execution::Failed;
         }
 
         if(resultedTrim != wantedTrim)
         {
-            TestFailed("Values placed in LeftJoystick.SetTrim_X were not the same gotten from LeftJoystick.GetTrim_X");
+            TestFailed("558: Values placed in LeftJoystick.SetTrim_X were not the same gotten from LeftJoystick.GetTrim_X");
+            TestExecution(result);
             return Execution::Failed;
         }
     }
@@ -644,8 +647,8 @@ Execution TEST_JOYSTICK_GetSetTrim_Y()
 {
     TestStart("GetSetTrim_Y");
     Execution result;
-    signed char wantedTrim = 0;
-    signed char resultedTrim = 1;
+    int wantedTrim = 0;
+    int resultedTrim = 1;
 
     #pragma region -Entire spectrum of values-
 
@@ -759,7 +762,7 @@ Execution TEST_JOYSTICK_GetCurrentAxis_X()
 {
     TestStart("GetCurrentAxis_X");
     Execution result;
-    signed char resultedAxis = 1;
+    int resultedAxis = 1;
 
     #pragma region -Setting modes to 0-
     #pragma region LeftJoystick
@@ -909,7 +912,7 @@ Execution TEST_JOYSTICK_GetCurrentAxis_Y()
 {
     TestStart("GetCurrentAxis_Y");
     Execution result;
-    signed char resultedAxis = 1;
+    int resultedAxis = 1;
 
     #pragma region -Setting modes to 0-
     #pragma region LeftJoystick
@@ -1213,8 +1216,8 @@ Execution TEST_JOYSTICK_GetEverything()
 {
     TestStart("GetEverything");
     Execution result;
-    signed char resultAxisX = 1;
-    signed char resultAxisY = 1;
+    int resultAxisX = 1;
+    int resultAxisY = 1;
     bool resultButton = 1;
 
     #pragma region -Reading default values-
@@ -1304,10 +1307,10 @@ Execution TEST_JOYSTICK_Update()
     TestStart("Update");
     Execution result;
 
-    signed char leftXAxis = 0;
-    signed char leftYAxis = 0;
-    signed char rightXAxis = 0;
-    signed char rightYAxis = 0; 
+    int leftXAxis = 0;
+    int leftYAxis = 0;
+    int rightXAxis = 0;
+    int rightYAxis = 0; 
     bool leftButton = 0;
     bool rightButton = 0;
 

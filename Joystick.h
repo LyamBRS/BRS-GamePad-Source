@@ -30,9 +30,9 @@
 //=============================================//
 //	Define
 //=============================================//
-#define _JOY_MAX_VAL 4096
-#define _JOY_MIN_VAL 0
-#define _JOY_MID_VAL 2048
+#define _JOY_MAX_VAL 2048
+#define _JOY_MIN_VAL -2048
+#define _JOY_MID_VAL 0
 
 /**
  * @brief Function that executes mathematics to

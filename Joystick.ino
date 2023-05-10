@@ -44,7 +44,7 @@ Execution CalculateJoystickAxisDeadzone(int* axisToModify, int Deadzone)
 {
     if(Deadzone > 0)
     {
-        char oldAxis = *axisToModify;
+        int oldAxis = *axisToModify;
         double maxAxisWithDeadzone = _JOY_MAX_VAL - (double) Deadzone;
         double currentAxis = (double)(*axisToModify);
 
@@ -55,8 +55,8 @@ Execution CalculateJoystickAxisDeadzone(int* axisToModify, int Deadzone)
         }
         else
         {
-            // Converts deadzone offset applied so the axis is still from -127 to 127
-            currentAxis = ((currentAxis * _JOY_MAX_VAL) / maxAxisWithDeadzone);
+            // Converts deadzone offset applied so the axis is still from -2048 to 2048
+            currentAxis = ((currentAxis * maxAxisWithDeadzone) / _JOY_MAX_VAL);
             if(oldAxis < 0)
             {
                 currentAxis = currentAxis + (double) Deadzone;
@@ -65,7 +65,7 @@ Execution CalculateJoystickAxisDeadzone(int* axisToModify, int Deadzone)
             {
                 currentAxis = currentAxis - (double) Deadzone;
             }   
-            *axisToModify = (char)currentAxis;
+            *axisToModify = (int)currentAxis;
             return Execution::Passed;
         }
     }
@@ -116,7 +116,7 @@ Execution CalculateJoystickAxisTrim(int* axisToModify, int Trim)
             maxValue = _JOY_MAX_VAL + trim;
         }
         resultAxis = ((resultAxis * maxValue)/_JOY_MAX_VAL) + trim;
-        *axisToModify = (char)resultAxis;
+        *axisToModify = (int)resultAxis;
         return Execution::Passed;
     }
     else
@@ -461,8 +461,8 @@ Execution cJoystick::Update()
     {
         if(_mode == 0)
         {
-            int _xAxis = analogRead(_analogXPin) - 2048;
-            int _yAxis = analogRead(_analogYPin) - 2048;
+            _xAxis = analogRead(_analogXPin) - 2048;
+            _yAxis = analogRead(_analogYPin) - 2048;
             _switch = digitalRead(_switchPin);
 
             // Converting unsigned value to signed value to keep 0 as not moving

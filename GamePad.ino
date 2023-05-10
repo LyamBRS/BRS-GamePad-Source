@@ -69,6 +69,11 @@ void setup() {
   {
     Device.SetStatus(Status::SoftwareError);
   }
+
+  LeftJoystick.SetDeadZone_X(60);
+  LeftJoystick.SetDeadZone_Y(60);
+  RightJoystick.SetDeadZone_X(60);
+  RightJoystick.SetDeadZone_Y(60);
 }
 
 unsigned int milliseconds = 0;
@@ -80,13 +85,45 @@ void loop() {
   LeftJoystick.Update();
   RightJoystick.Update();
 
-  signed char right_x = 0;
-  signed char left_x = 0;
-  signed char left_y = 0;
-  signed char right_y = 0;
+  Button1.Update();
+  Button2.Update();
+  Button3.Update();
+  Button4.Update();
+  Button5.Update();
 
+  int right_x = 0;
+  int left_x = 0;
+  int left_y = 0;
+  int right_y = 0;
   bool left_button = 0;
-  bool right_button = 0; 
+  bool right_button = 0;
+
+  bool button1 = false;
+  bool button2 = false;
+  bool button3 = false;
+  bool button4 = false;
+  bool button5 = false;
+
+  Button1.GetLatestValue(&button1);
+  Button2.GetLatestValue(&button2);
+  Button3.GetLatestValue(&button3);
+  Button4.GetLatestValue(&button4);
+  Button5.GetLatestValue(&button5);
+
+  LeftJoystick.GetCurrentAxis_X(&left_x);
+  LeftJoystick.GetCurrentAxis_Y(&left_y);
+  RightJoystick.GetCurrentAxis_X(&right_x);
+  RightJoystick.GetCurrentAxis_Y(&right_y);
+  LeftJoystick.GetCurrentSwitch(&left_button);
+  RightJoystick.GetCurrentSwitch(&right_button);
+
+  LeftJoystick.SetMode(0);
+  RightJoystick.SetMode(0);
+
+  LeftJoystick.SetTrim_X(0);
+  LeftJoystick.SetTrim_Y(0);
+  RightJoystick.SetTrim_X(0);
+  RightJoystick.SetTrim_Y(0);
 
   LeftJoystick.GetCurrentAxis_X(&left_x);
   LeftJoystick.GetCurrentAxis_Y(&left_y);
@@ -97,20 +134,33 @@ void loop() {
   LeftJoystick.GetCurrentSwitch(&left_button);
   RightJoystick.GetCurrentSwitch(&right_button);
 
-  Serial.println("RX: ");
-  Serial.print(right_x);
-  Serial.println("RY: ");
-  Serial.print(right_y);
-  Serial.println("RB: ");
-  Serial.print(right_button);
+  Serial.print("RX: ");
+  Serial.println(right_x);
+  Serial.print("RY: ");
+  Serial.println(right_y);
+// 
+  // Serial.print("LX: ");
+  // Serial.println(left_x);
+  // Serial.print("LY: ");
+  // Serial.println(left_y);
+  // Serial.print("RB: ");
+  // Serial.println(right_button);
+  // Serial.print("LB: ");
+  // Serial.println(left_button);
+  // Serial.print("\n");
+// 
+  // Serial.print("1: ");
+  // Serial.println(button1);
+  // Serial.print("2: ");
+  // Serial.println(button2);
+  // Serial.print("3: ");
+  // Serial.println(button3);
+  // Serial.print("4: ");
+  // Serial.println(button4);
+  // Serial.print("5: ");
+  // Serial.println(button5);
+  // Serial.print("\n");
 
-  Serial.println("LX: ");
-  Serial.print(left_x);
-  Serial.println("LY: ");
-  Serial.print(left_y);
-  Serial.println("LB: ");
-  Serial.print(left_button);
-  Serial.println("\n\n");
 // 
             // unsigned char red = analogRead(8);
             // unsigned char blue = analogRead(5);
