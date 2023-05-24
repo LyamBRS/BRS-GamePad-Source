@@ -236,7 +236,14 @@ void loop()
   if(handshaken)
   {
     DisplayRegularLights();
+    if(isPlaneRequestForHardware())
+    {
 
+    }
+    else
+    {
+      
+    }
 
   }
   else
