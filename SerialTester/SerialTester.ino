@@ -120,6 +120,10 @@ bool switch3 = false;
 bool switch4 = false;
 bool switch5 = false;
 
+/**
+ * @brief Interface that clears the runway
+ * of anything saved.
+ */
 void ClearRunway()
 {
   currentPlaneSize = 0;
@@ -131,6 +135,11 @@ void ClearRunway()
   }
 }
 
+/**
+ * @brief Interface that handles data received when
+ * the data is a passenger.
+ * @param passenger 
+ */
 void HandlePassengerLuggage(unsigned char passenger)
 {
   if(receivingLuggage && planeLanding)
@@ -149,6 +158,11 @@ void HandlePassengerLuggage(unsigned char passenger)
   }
 }
 
+/**
+ * @brief Interface that handles data received
+ * when the current data is a passenger type.
+ * @param passengerType 
+ */
 void HandlePassengerType(unsigned char passengerType)
 {
   if(!receivingLuggage)
@@ -197,10 +211,14 @@ void HandlePassengerType(unsigned char passengerType)
   }
 }
 
+/**
+ * @brief Interface that surounds the hardware pilot
+ */
 void HandleReceivedMasterData()
 {
   if (kontrolToGamepad.available())
   {
+    Device.SetStatus(Status::Busy);
     unsigned char currentByte = kontrolToGamepad.read();
 
     if(!planeLanding || !receivingLuggage)
@@ -214,6 +232,11 @@ void HandleReceivedMasterData()
   }
 }
 
+/**
+ * @brief Interface that calls the update
+ * methods of hardware objects to get
+ * their latests values.
+ */
 void UpdateAllControls()
 {
   LeftJoystick.Update();
@@ -225,6 +248,12 @@ void UpdateAllControls()
   Button5.Update();
 }
 #pragma region ------------------------- Plane callsign identification
+/**
+ * @brief Interface that analyze the plane saved
+ * and returns values depending on its callsign.
+ * @return true = The plane is an handshake request.
+ * @return false = The plane is not an handshake request.
+ */
 bool PlaneIsAnHandshake()
 {
   if(planeLanded)
@@ -243,6 +272,12 @@ bool PlaneIsAnHandshake()
   return false;
 }
 
+/**
+ * @brief Interface that analyze the plane saved
+ * and returns values depending on its callsign.
+ * @return true = The plane is an hardware request.
+ * @return false = The plane is not an hardware request.
+ */
 bool PlaneIsAnHardwareRequest()
 {
   if(planeLanded)
@@ -260,6 +295,10 @@ bool PlaneIsAnHardwareRequest()
   return false;
 }
 #pragma endregion
+/**
+ * @brief Interface that calls the UART pilot
+ * and sends the universal information buffer.
+ */
 void SendUniversalInfo()
 {
   for(int index = 0; index < 170; index++)
@@ -269,6 +308,11 @@ void SendUniversalInfo()
 }
 
 #pragma region ------------------------- RGB handlers
+/**
+ * @brief Interface that handles the
+ * RGB light colors to show a pulsating
+ * orange light when we're handshaking.
+ */
 void ShowHandshakingRGB()
 {
   Rgb.SetMode(1);
@@ -276,6 +320,10 @@ void ShowHandshakingRGB()
   Rgb.SetColors(255,128,0);
 }
 
+/**
+ * @brief Interface that displays
+ * regular RGB lights colors
+ */
 void ShowRegularRGB()
 {
   Rgb.SetMode(2);
@@ -284,6 +332,10 @@ void ShowRegularRGB()
 #pragma endregion
 
 #pragma region ------------------------- Hardware plane building
+/**
+ * @brief Pilot that directly extracts values from
+ * the hardware objects.
+ */
 void ExtractVariablesFromHardware()
 {
   Execution result;
@@ -431,6 +483,10 @@ void ConvertSwitchesToLuggage()
   }
 }
 
+/**
+ * @brief Interface that converts hardware to
+ * luggages to be later assigned to passengers.
+ */
 void ConvertVariablesToLuggage()
 {
   ConvertLeftJoystickToLuggages();
@@ -440,6 +496,10 @@ void ConvertVariablesToLuggage()
 #pragma endregion
 
 #pragma region ------------------------- Passenger classes convertions
+/**
+ * @brief Function that generates segments 
+ * from the left joystick values
+ */
 void AssignLeftJoystickLuggageToPassengers()
 {
   Execution result;
@@ -465,7 +525,10 @@ void AssignLeftJoystickLuggageToPassengers()
     Device.SetStatus(Status::CommunicationError);
   }
 }
-
+/**
+ * @brief Function that generates segments 
+ * from the right joystick values
+ */
 void AssignRightJoystickLuggageToPassengers()
 {
   Execution result;
@@ -491,7 +554,10 @@ void AssignRightJoystickLuggageToPassengers()
     Device.SetStatus(Status::CommunicationError);
   }
 }
-
+/**
+ * @brief Function that generates segments 
+ * from the switches values
+ */
 void AssignSwitchesLuggageToPassengers()
 {
   Execution result;
@@ -532,6 +598,10 @@ void AssignSwitchesLuggageToPassengers()
   }
 }
 
+/**
+ * @brief Interface that assigns luggages
+ * to passengers.
+ */
 void AssignLuggagesToPassengers()
 {
   AssignLeftJoystickLuggageToPassengers();
@@ -541,6 +611,10 @@ void AssignLuggagesToPassengers()
 #pragma endregion
 
 #pragma region ------------------------- Board classes in plane
+/**
+ * @brief Function that generates segments
+ * to build a plane later.
+ */
 void BoardPassengersInThePlane()
 {
   Execution result;
@@ -629,6 +703,9 @@ void BoardPassengersInThePlane()
 #pragma endregion
 
 #pragma region ------------------------- Get plane ready for take off
+/**
+ * @brief Interface that puts a place on the runway pilot
+ */
 void GetPlaneReadyForTakeOff()
 {
   Execution result;
@@ -641,6 +718,9 @@ void GetPlaneReadyForTakeOff()
   }
 }
 #pragma endregion
+/**
+ * @brief Interface that builds an hardware plane.
+ */
 void BuildHardwarePlane()
 {
   ExtractVariablesFromHardware();
@@ -650,6 +730,10 @@ void BuildHardwarePlane()
   GetPlaneReadyForTakeOff();
 }
 
+/**
+ * @brief Interface that handles the generation
+ * of answers to hardware output requests.
+ */
 void HandleAnswerToHardwareRequest()
 {
   Device.SetStatus(Status::Busy);
@@ -661,6 +745,11 @@ void HandleAnswerToHardwareRequest()
 }
 #pragma endregion
 
+/**
+ * @brief Pilot that sends passengers on a runway.
+ * @param planePassengers 
+ * @param sizeOfPlane 
+ */
 void PlaneTakeOff(unsigned short* planePassengers, int sizeOfPlane)
 {
   Execution result;
@@ -682,42 +771,99 @@ void PlaneTakeOff(unsigned short* planePassengers, int sizeOfPlane)
   }
 }
 
+#pragma region ------------------------- Data interfaces
+/**
+ * @brief Interface that handles
+ * the regular data sending portion of the
+ * communication.
+ */
+void HandleHandshaken()
+{
+  if(handshaken)
+  {
+   ShowRegularRGB();
+   if(PlaneIsAnHardwareRequest())
+   {
+     // We received a plane asking us to send a plane containing all our hardware data.
+     HandleAnswerToHardwareRequest();
+   }
+   else
+   {
+     if(PlaneIsAnHandshake())
+     {
+       SendUniversalInfo();
+       ClearRunway();
+       planeLanded = false;
+       handshaken = true;
+     }
+   }
+  }  
+}
+
+/**
+ * @brief Interface that handles the handshaking
+ * portion of the communication.
+ */
+void HandleHandshaking()
+{
+  if(!handshaken)
+  {
+    Device.SetStatus(Status::Handshake);
+    ShowHandshakingRGB();
+    if(PlaneIsAnHandshake())
+    {
+      SendUniversalInfo();
+      ClearRunway();
+      planeLanded = false;
+      handshaken = true;
+    } 
+  }
+}
+#pragma endregion
+
+#pragma region ------------------------- Processes
+/**
+ * @brief Process that handles
+ * all communication proceedures
+ * of Gamepad including data
+ * parsing and sending.
+ */
+void HandleCommunications()
+{
+  HandleReceivedMasterData();
+  HandleHandshaking();
+  HandleHandshaken(); 
+}
+
+/**
+ * @brief Process that handles
+ * the hardware inputs of
+ * Gamepad. This excludes RGB
+ * because RGB is an output.
+ */
+void HandleHardware()
+{
+  UpdateAllControls();
+}
+
+/**
+ * @brief Function that handles
+ * the RGB process. It mainly calls
+ * the update function of the RGB object.
+ * to update its light and handle animations.
+ */
+void HandleRGB()
+{
+  Rgb.Update();
+}
+#pragma endregion
+
 void loop() 
 {
-  SendUniversalInfo();
-  delay(1000);
-  //HandleReceivedMasterData();
-  //if(handshaken)
-  //{
-  //  ShowRegularRGB();
-  //  if(PlaneIsAnHardwareRequest())
-  //  {
-  //    // We received a plane asking us to send a plane containing all our hardware data.
-  //    HandleAnswerToHardwareRequest();
-  //  }
-  //  else
-  //  {
-  //    if(PlaneIsAnHandshake())
-  //    {
-  //      SendUniversalInfo();
-  //      ClearRunway();
-  //      planeLanded = false;
-  //      handshaken = true;
-  //    }
-  //  }
-  //}
-  //else
-  //{
-  //  Device.SetStatus(Status::Handshake);
-  //  ShowHandshakingRGB();
-  //  if(PlaneIsAnHandshake())
-  //  {
-  //    SendUniversalInfo();
-  //    ClearRunway();
-  //    planeLanded = false;
-  //    handshaken = true;
-  //  }
-  //}
+  // SendUniversalInfo();
+  // delay(1000);
 
-  Rgb.Update();
+  HandleHardware();
+  HandleCommunications();
+  HandleRGB();
 }
