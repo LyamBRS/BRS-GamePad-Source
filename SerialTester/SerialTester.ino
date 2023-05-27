@@ -87,8 +87,8 @@ unsigned short switch3Passengers[2];
 unsigned short switch4Passengers[2];
 unsigned short switch5Passengers[2];
 
-unsigned char leftJoystickXaxisLuggage[4]; 
-unsigned char leftJoystickYaxisLuggage[4]; 
+unsigned char leftJoystickXaxisLuggage[4];
+unsigned char leftJoystickYaxisLuggage[4];
 unsigned char leftJoystickButtonLuggage[1];
 
 unsigned char rightJoystickXaxisLuggage[4];
@@ -105,13 +105,13 @@ unsigned short temporaryBufferA[37]; // Used to append passengers segments toghe
 unsigned short temporaryBufferB[37]; // used to append passengers segments toghether
 unsigned short boardedPassengers[34]; // Used to put all the passengers before boarding the pilot and co-pilot
 
-int leftJoystickXaxis = 0;  
-int leftJoystickYaxis = 0;  
+int leftJoystickXaxis = 0;
+int leftJoystickYaxis = 0;
 
 int rightJoystickXaxis = 0;
 int rightJoystickYaxis = 0;
 
-bool leftJoystickButton = false; 
+bool leftJoystickButton = false;
 bool rightJoystickButton = false;
 
 bool switch1 = false;
