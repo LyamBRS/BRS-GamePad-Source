@@ -858,7 +858,7 @@ void HandleRGB()
 }
 #pragma endregion
 
-void loop() 
+void loop()
 {
   // SendUniversalInfo();
   // delay(1000);
