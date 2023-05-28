@@ -138,28 +138,28 @@ void loop() {
   Serial.println(right_x);
   Serial.print("RY: ");
   Serial.println(right_y);
-// 
-  // Serial.print("LX: ");
-  // Serial.println(left_x);
-  // Serial.print("LY: ");
-  // Serial.println(left_y);
-  // Serial.print("RB: ");
-  // Serial.println(right_button);
-  // Serial.print("LB: ");
-  // Serial.println(left_button);
-  // Serial.print("\n");
-// 
-  // Serial.print("1: ");
-  // Serial.println(button1);
-  // Serial.print("2: ");
-  // Serial.println(button2);
-  // Serial.print("3: ");
-  // Serial.println(button3);
-  // Serial.print("4: ");
-  // Serial.println(button4);
-  // Serial.print("5: ");
-  // Serial.println(button5);
-  // Serial.print("\n");
+  
+  Serial.print("LX: ");
+  Serial.println(left_x);
+  Serial.print("LY: ");
+  Serial.println(left_y);
+  Serial.print("RB: ");
+  Serial.println(right_button);
+  Serial.print("LB: ");
+  Serial.println(left_button);
+  Serial.print("\n");
+  
+  Serial.print("1: ");
+  Serial.println(button1);
+  Serial.print("2: ");
+  Serial.println(button2);
+  Serial.print("3: ");
+  Serial.println(button3);
+  Serial.print("4: ");
+  Serial.println(button4);
+  Serial.print("5: ");
+  Serial.println(button5);
+  Serial.print("\n");
 
 // 
             // unsigned char red = analogRead(8);
