@@ -66,14 +66,14 @@
 #define LEFT_JOYSTICK_SWITCH_PIN 45
 ///@brief The button of the right joystick is GPIO16
 #define RIGHT_JOYSTICK_SWITCH_PIN 16
-///@brief The X axis ADC of the left joystick is GPIO 
-#define LEFT_JOYSTICK_X_PIN 3
-///@brief The X axis ADC of the right joystick is GPIO 
-#define RIGHT_JOYSTICK_X_PIN 2
-///@brief The Y axis ADC of the left joystick is GPIO 
-#define LEFT_JOYSTICK_Y_PIN 4
-///@brief The Y axis ADC of the right joystick is GPIO 
-#define RIGHT_JOYSTICK_Y_PIN 1
+///@brief The X axis ADC of the left joystick is GPIO
+#define LEFT_JOYSTICK_X_PIN 2
+///@brief The X axis ADC of the right joystick is GPIO
+#define RIGHT_JOYSTICK_X_PIN 3
+///@brief The Y axis ADC of the left joystick is GPIO
+#define LEFT_JOYSTICK_Y_PIN 1
+///@brief The Y axis ADC of the right joystick is GPIO
+#define RIGHT_JOYSTICK_Y_PIN 4
 
 #define BUTTON_1_PIN 48
 #define BUTTON_2_PIN 47
