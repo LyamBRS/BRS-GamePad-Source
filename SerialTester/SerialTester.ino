@@ -30,6 +30,7 @@ EspSoftwareSerial::UART kontrolToGamepad;
 
 void setup() {
 
+Serial.begin(9600);
   InitializeProject();
 
   Rgb.SetColors(255,255,255);
@@ -51,7 +52,6 @@ void setup() {
   if (!kontrolToGamepad) { // If the object did not initialize, then its configuration is invalid
     Rgb.SetColors(255,0,255);
     Rgb.SetErrorMode(2,100,500);
-    // Serial.println("Invalid EspSoftwareSerial pin configuration, check config"); 
     while (1) { // Don't continue with invalid configuration
       delay (0.01);
       Rgb.Update();
@@ -72,6 +72,17 @@ bool planeLanded = false;
 bool handshaken = false;
 bool sendControls = false;
 int currentPlaneSize = 0;
+
+void WhileError()
+{
+  while(true)
+  {
+    Rgb.SetColors(255,0,0);
+    delay(1);
+    Rgb.Update();
+
+  }
+}
 
 unsigned short leftJoystickXaxisPassengers[5];   // Buffer of 1 flight attendant and 4 passenger
 unsigned short leftJoystickYaxisPassengers[5];   // Buffer of 1 flight attendant and 4 passenger
@@ -345,6 +356,7 @@ void ExtractVariablesFromHardware()
   {
     Device.SetErrorMessage("268: LeftJoystick");
     Device.SetStatus(Status::CommunicationError);
+    WhileError();
   }
   ////////////////////////////////////
   result = RightJoystick.GetEverything(&rightJoystickXaxis, &rightJoystickYaxis, &rightJoystickButton);
@@ -352,41 +364,47 @@ void ExtractVariablesFromHardware()
   {
     Device.SetErrorMessage("275: RightJoystick");
     Device.SetStatus(Status::CommunicationError);
+    WhileError();
   }
   ////////////////////////////////////
   result = Button1.GetLatestValue(&switch1);
-  if(result != Execution::Passed)
+  if(result == Execution::Crashed)
   {
     Device.SetErrorMessage("282: Button1");
     Device.SetStatus(Status::CommunicationError);
+    WhileError();
   }
   ////////////////////////////////////
   result = Button2.GetLatestValue(&switch2);
-  if(result != Execution::Passed)
+  if(result == Execution::Crashed)
   {
     Device.SetErrorMessage("289: Button2");
     Device.SetStatus(Status::CommunicationError);
+    WhileError();
   }
   ////////////////////////////////////
   result = Button3.GetLatestValue(&switch3);
-  if(result != Execution::Passed)
+  if(result == Execution::Crashed)
   {
     Device.SetErrorMessage("296: Button3");
     Device.SetStatus(Status::CommunicationError);
+    WhileError();
   }
   ////////////////////////////////////
   result = Button4.GetLatestValue(&switch4);
-  if(result != Execution::Passed)
+  if(result == Execution::Crashed)
   {
     Device.SetErrorMessage("303: Button4");
     Device.SetStatus(Status::CommunicationError);
+    WhileError();
   }
   ////////////////////////////////////
   result = Button5.GetLatestValue(&switch5);
-  if(result != Execution::Passed)
+  if(result == Execution::Crashed)
   {
     Device.SetErrorMessage("310: Button5");
     Device.SetStatus(Status::CommunicationError);
+    WhileError();
   }
 }
 
@@ -395,21 +413,21 @@ void ConvertLeftJoystickToLuggages()
 {
   Execution result;
   //////////////////////////////
-  result = Data.ToBytes(&leftJoystickXaxis, leftJoystickXaxisLuggage, 4);
+  result = Data.ToBytes(leftJoystickXaxis, leftJoystickXaxisLuggage, 4);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("323: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&leftJoystickYaxis, leftJoystickYaxisLuggage, 4);
+  result = Data.ToBytes(leftJoystickYaxis, leftJoystickYaxisLuggage, 4);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("330: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&leftJoystickButton, leftJoystickButtonLuggage, 1);
+  result = Data.ToBytes(leftJoystickButton, leftJoystickButtonLuggage, 1);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("337: Data.ToBytes");
@@ -421,21 +439,21 @@ void ConvertRightJoystickToLuggages()
 {
   Execution result;
   //////////////////////////////
-  result = Data.ToBytes(&rightJoystickXaxis, rightJoystickXaxisLuggage, 4);
+  result = Data.ToBytes(rightJoystickXaxis, rightJoystickXaxisLuggage, 4);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("349: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&rightJoystickYaxis, rightJoystickYaxisLuggage, 4);
+  result = Data.ToBytes(rightJoystickYaxis, rightJoystickYaxisLuggage, 4);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("356: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&rightJoystickButton, rightJoystickButtonLuggage, 1);
+  result = Data.ToBytes(rightJoystickButton, rightJoystickButtonLuggage, 1);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("363: Data.ToBytes");
@@ -447,35 +465,35 @@ void ConvertSwitchesToLuggage()
 {
   Execution result;
   //////////////////////////////
-  result = Data.ToBytes(&switch1, switch1Luggage, 1);
+  result = Data.ToBytes(switch1, switch1Luggage, 1);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("375: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&switch2, switch2Luggage, 1);
+  result = Data.ToBytes(switch2, switch2Luggage, 1);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("382: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&switch3, switch3Luggage, 1);
+  result = Data.ToBytes(switch3, switch3Luggage, 1);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("389: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&switch4, switch4Luggage, 1);
+  result = Data.ToBytes(switch4, switch4Luggage, 1);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("396: Data.ToBytes");
     Device.SetStatus(Status::CommunicationError);
   }
   //////////////////////////////
-  result = Data.ToBytes(&switch5, switch5Luggage, 1);
+  result = Data.ToBytes(switch5, switch5Luggage, 1);
   if(result != Execution::Passed)
   {
     Device.SetErrorMessage("403: Data.ToBytes");
@@ -766,8 +784,12 @@ void PlaneTakeOff(unsigned short* planePassengers, int sizeOfPlane)
       Device.SetErrorMessage("664: UART Convertion failure");
       Device.SetStatus(Status::CommunicationError);
     }
-    kontrolToGamepad.write(uartPassenger[0]);
+    //Serial.print(uartPassenger[1]);
+    //Serial.print(",");
+    //Serial.print(uartPassenger[0]);
+    //Serial.print(",");
     kontrolToGamepad.write(uartPassenger[1]);
+    kontrolToGamepad.write(uartPassenger[0]);
   }
 }
 
@@ -797,7 +819,7 @@ void HandleHandshaken()
        handshaken = true;
      }
    }
-  }  
+  }
 }
 
 /**
@@ -832,7 +854,7 @@ void HandleCommunications()
 {
   HandleReceivedMasterData();
   HandleHandshaking();
-  HandleHandshaken(); 
+  HandleHandshaken();
 }
 
 /**
@@ -861,7 +883,7 @@ void HandleRGB()
 void loop()
 {
   // SendUniversalInfo();
-  // delay(1000);
+  //delay(5000);
 
   HandleHardware();
   HandleCommunications();
