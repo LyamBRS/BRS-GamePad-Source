@@ -42,5 +42,20 @@
         "xlocale": "cpp",
         "xlocinfo": "cpp",
         "xstddef": "cpp"
-    }
+    },
+    "cSpell.words": [
+        "Convertion",
+        "convertions",
+        "endregion",
+        "Gamepad",
+        "GPIO",
+        "handshaken",
+        "Handshaken",
+        "proceedures",
+        "surounds",
+        "SWSERIAL",
+        "toghether",
+        "Xaxis",
+        "Yaxis"
+    ]
 }
